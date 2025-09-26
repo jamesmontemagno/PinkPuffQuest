@@ -8,7 +8,9 @@ An ultra-minimal Three.js + TypeScript prototype implementing the core "sleep to
 - Sleep pulse ability that freezes nearby enemies and starts a cooldown
 - Sleeper Platform enemies that patrol when awake and become safe platforms when asleep
 - Bounce Critter enemies that bob in the air and turn into spring pads when asleep
-- Collectible musical notes, HUD with health pips and cooldown indicator
+- Collectible star-notes that twirl and glow as you approach, plus HUD with health pips and cooldown indicator
+- Dream Heart pickups that restore missing health
+- Three handcrafted stages culminating in a boss arena
 - Mid-level checkpoint, instant respawn, and end gate overlay with stats
 - Orthographic Three.js rendering with pastel placeholder geometry
 
@@ -41,6 +43,7 @@ An ultra-minimal Three.js + TypeScript prototype implementing the core "sleep to
 - Jump: Fixed-height leap with an 11 u/s launch velocity (~3 tile reach) plus 0.1 seconds of coyote forgiveness.
 - Health: 3 drowsiness pips; taking damage while awake enemies are touched removes 1 pip and grants 1 second of invulnerability.
 - Sleep Pulse: Emits a radius-3 wave, applying a 4-second sleep to affected enemies and entering a 1.5-second cooldown. The HUD cooldown meter mirrors the recharge progress.
+- Dream Hearts: Collectible items sprinkled through later levels restore 1 pip up to the 3 pip maximum.
 
 ### Enemies
 
@@ -53,6 +56,18 @@ An ultra-minimal Three.js + TypeScript prototype implementing the core "sleep to
 
 - Awake: Bobs vertically on a sine curve, dealing damage on contact.
 - Asleep: Locks in place and becomes a springboard that launches the player upward with a strong bounce (launch velocity 11 u/s) when landed on.
+
+**Boss — Lullaby Warden**
+
+- Patrols the final arena, swooping gently while awake and dealing contact damage.
+- Requires four successful sleep pulses to defeat; each pulse briefly stuns the boss, opening a safe window.
+- Gate unlocks only after the Warden is defeated and all notes in the arena are collected.
+
+### Levels
+
+1. **Prototype Meadow** — Tutorial stretch introducing sleepers, critters, and the basics of note gathering.
+2. **Dreamy Cliffs** — Vertical-heavy platforms with alternating sleepers and critters plus the first Dream Hearts.
+3. **Moonlit Arena** — Boss showdown with the Lullaby Warden, bounce critters as assists, and a final gate out of the dream.
 
 ## Build
 
@@ -74,7 +89,8 @@ The output lives in `dist/` and can be hosted on any static web server.
 ├─ src/
 │  ├─ Game.ts          # Core game orchestration, physics, rendering
 │  ├─ entities.ts      # Entity factories and helpers
-│  ├─ level1.ts        # Level layout, enemy spawns, collectibles
+│  ├─ levels.ts        # Multi-stage layouts, enemies, pickups, collectibles
+│  ├─ level1.ts        # Legacy re-export of levels for compatibility
 │  ├─ input.ts         # Keyboard state tracking
 │  ├─ loop.ts          # Fixed-step game loop helper
 │  ├─ sleepPulse.ts    # Sleep pulse lifecycle

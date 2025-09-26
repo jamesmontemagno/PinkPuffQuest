@@ -6,6 +6,7 @@ import {
   JUMP_VELOCITY,
   MAX_HEALTH,
   PLAYER_SPEED,
+  SLEEP_DURATION,
   SLEEP_COOLDOWN,
   SLEEP_RADIUS,
   WORLD_HEIGHT,
@@ -47,6 +48,11 @@ const CHECKPOINT_COLOR = 0xf4b7d2;
 const CHECKPOINT_ACTIVE_COLOR = 0xf982ae;
 const BOSS_AWAKE_COLOR = 0x7653d7;
 const BOSS_STUNNED_COLOR = 0xbfa9ff;
+
+const NOTE_BASE = new THREE.Color(NOTE_COLOR);
+const NOTE_GLOW = new THREE.Color(NOTE_EMISSIVE_COLOR);
+const PICKUP_BASE = new THREE.Color(PICKUP_COLOR);
+const PICKUP_GLOW = new THREE.Color(PICKUP_GLOW_COLOR);
 
 const DEATH_Y = -5;
 
@@ -104,6 +110,8 @@ export class Game {
     0,
   );
   private runTime = 0;
+  private levelWidth = WORLD_WIDTH;
+  private levelHeight = WORLD_HEIGHT;
 
   private elapsed = 0;
   private completed = false;
@@ -206,8 +214,8 @@ export class Game {
 
     this.bossRemaining = this.enemies.filter((enemy) => enemy.kind === EnemyKind.Boss).length;
 
-    this.checkpointRect = { x: level.checkpoint.x, y: level.checkpoint.y, w: 2, h: 3 };
-    this.checkpointActive = true;
+  this.checkpointRect = { x: level.checkpoint.x, y: level.checkpoint.y, w: 2, h: 3 };
+  this.checkpointActive = false;
     this.updateCheckpointMesh();
 
     this.gateRect = { ...level.gate };
@@ -217,6 +225,26 @@ export class Game {
       this.gateRect.y + this.gateRect.h / 2,
       0,
     );
+
+    const maxPlatformX = level.platforms.reduce((max, rect) => Math.max(max, rect.x + rect.w), 0);
+    const maxNoteX = level.notes.reduce((max, note) => Math.max(max, note.x), maxPlatformX);
+    const maxPickupX = level.pickups.reduce(
+      (max, pickup) => Math.max(max, pickup.x + 1),
+      maxNoteX,
+    );
+    const maxEnemyX = this.enemies.reduce((max, enemy) => Math.max(max, enemy.x + enemy.w), maxPickupX);
+    const maxGateX = Math.max(maxEnemyX, this.gateRect.x + this.gateRect.w);
+    this.levelWidth = Math.max(WORLD_WIDTH, maxGateX + 4);
+
+    const maxPlatformY = level.platforms.reduce((max, rect) => Math.max(max, rect.y + rect.h), 0);
+    const maxNoteY = level.notes.reduce((max, note) => Math.max(max, note.y), maxPlatformY);
+    const maxPickupY = level.pickups.reduce(
+      (max, pickup) => Math.max(max, pickup.y + 1),
+      maxNoteY,
+    );
+    const maxEnemyY = this.enemies.reduce((max, enemy) => Math.max(max, enemy.y + enemy.h), maxPickupY);
+    const maxGateY = Math.max(maxEnemyY, this.gateRect.y + this.gateRect.h);
+    this.levelHeight = Math.max(WORLD_HEIGHT, maxGateY + 4);
 
     const carryHealth = options.carryHealth ?? false;
     const preservedHealth = carryHealth
@@ -248,8 +276,9 @@ export class Game {
     }
 
     this.elapsed += dt;
+    this.runTime += dt;
 
-  this.handleInput(dt);
+    this.handleInput(dt);
 
     const prevX = this.player.x;
     const prevY = this.player.y;
@@ -258,6 +287,7 @@ export class Game {
     this.updateEnemies(dt);
     this.handleEnemyInteractions(prevX, prevY);
     this.collectNotes();
+    this.collectPickups();
     this.updateCheckpoint();
     this.checkGate();
 
@@ -266,6 +296,9 @@ export class Game {
     this.syncPlayerMesh();
     this.syncEnemyMeshes();
     this.syncNoteMeshes();
+    this.syncPickupMeshes();
+    this.animateNotes(dt);
+    this.animatePickups();
     this.updateCheckpointMesh();
     this.updateHud();
     this.updateCamera();
@@ -361,7 +394,7 @@ export class Game {
   }
 
   private collectSolidRects(): Rect[] {
-    const rects: Rect[] = [...PLATFORMS];
+    const rects: Rect[] = this.level.platforms.map((platform) => ({ ...platform }));
     for (const enemy of this.enemies) {
       if (enemy.kind === EnemyKind.SleeperPlatform) {
         rects.push({ x: enemy.x, y: enemy.y, w: enemy.w, h: enemy.h });
@@ -378,7 +411,7 @@ export class Game {
         wakeEnemy(enemy);
       }
 
-  if (enemy.kind === EnemyKind.SleeperPlatform) {
+      if (enemy.kind === EnemyKind.SleeperPlatform) {
         if (enemy.state === 'awake') {
           enemy.x += enemy.vx * dt;
           if (enemy.patrol) {
@@ -394,10 +427,29 @@ export class Game {
             }
           }
         }
-  } else if (enemy.kind === EnemyKind.BounceCritter) {
+      } else if (enemy.kind === EnemyKind.BounceCritter) {
         if (enemy.state === 'awake' && enemy.bob) {
           enemy.y = enemy.baseY + Math.sin(this.elapsed * enemy.bob.freq * Math.PI * 2) * enemy.bob.amp;
         } else if (enemy.state === 'asleep') {
+          enemy.y = enemy.baseY;
+        }
+      } else if (enemy.kind === EnemyKind.Boss) {
+        if (enemy.state === 'awake') {
+          enemy.x += enemy.vx * dt;
+          if (enemy.patrol) {
+            if (enemy.x < enemy.patrol.xMin) {
+              enemy.x = enemy.patrol.xMin;
+              enemy.direction = 1;
+              enemy.vx = Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+            }
+            if (enemy.x + enemy.w > enemy.patrol.xMax) {
+              enemy.x = enemy.patrol.xMax - enemy.w;
+              enemy.direction = -1;
+              enemy.vx = -Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+            }
+          }
+          enemy.y = enemy.baseY + Math.sin(this.elapsed * 1.5) * 0.3;
+        } else {
           enemy.y = enemy.baseY;
         }
       }
@@ -461,25 +513,67 @@ export class Game {
       if (dx * dx + dy * dy <= 0.4 * 0.4) {
         note.collected = true;
         this.player.notes += 1;
+        this.overallNotesCollected += 1;
+        const mesh = this.noteMeshes[i];
+        if (mesh) {
+          mesh.scale.set(1.15, 1.15, 1);
+        }
       }
+    }
+  }
+
+  private collectPickups(): void {
+    for (let i = 0; i < this.pickups.length; i += 1) {
+      const pickup = this.pickups[i];
+      if (pickup.collected) continue;
+      const rect = { x: pickup.x, y: pickup.y, w: pickup.w, h: pickup.h };
+      if (!this.intersects(this.player, rect)) continue;
+      pickup.collected = true;
+      if (pickup.kind === PickupKind.Health) {
+        this.player.health = Math.min(MAX_HEALTH, this.player.health + 1);
+      }
+    }
+  }
+
+  private defeatEnemy(index: number): void {
+    const [enemy] = this.enemies.splice(index, 1);
+    const mesh = this.enemyMeshes.splice(index, 1)[0];
+    if (mesh) {
+      this.enemyGroup.remove(mesh);
+      (mesh.material as THREE.Material).dispose?.();
+    }
+    if (enemy && enemy.kind === EnemyKind.Boss) {
+      this.bossRemaining = Math.max(0, this.bossRemaining - 1);
     }
   }
 
   private updateCheckpoint(): void {
     if (this.checkpointActive) return;
-    if (this.intersects(this.player, CHECKPOINT_SIZE)) {
-      this.player.respawnX = CHECKPOINT.x;
-      this.player.respawnY = CHECKPOINT.y + 1;
+    if (this.intersects(this.player, this.checkpointRect)) {
+      this.player.respawnX = this.checkpointRect.x;
+      this.player.respawnY = this.checkpointRect.y + 1;
       this.checkpointActive = true;
     }
   }
 
   private checkGate(): void {
     if (this.completed) return;
-    if (this.intersects(this.player, GATE)) {
+    if (this.player.notes < this.noteGoal) return;
+    if (this.bossRemaining > 0) return;
+    if (this.intersects(this.player, this.gateRect)) {
+      this.advanceLevel();
+    }
+  }
+
+  private advanceLevel(): void {
+    const nextIndex = this.levelIndex + 1;
+    if (nextIndex < LEVELS.length) {
+      const carryHealth = Math.max(1, Math.min(MAX_HEALTH, this.player.health));
+      this.loadLevel(nextIndex, { carryHealth: true, health: carryHealth });
+      hideCompleteOverlay();
+    } else {
       this.completed = true;
-      this.completionTime = this.elapsed;
-      const stats = `Time: ${this.completionTime.toFixed(1)}s — Notes: ${this.player.notes}/${this.noteTotal}`;
+      const stats = `Dream Complete! Time: ${this.runTime.toFixed(1)}s — Notes: ${this.overallNotesCollected}/${this.overallNoteGoal}`;
       showCompleteOverlay(stats);
     }
   }
@@ -496,8 +590,16 @@ export class Game {
     const halfHeight = this.viewHeight / 2;
     const playerCenterX = this.player.x + this.player.w / 2;
     const playerCenterY = this.player.y + this.player.h / 2;
-    const targetX = THREE.MathUtils.clamp(playerCenterX, halfWidth, WORLD_WIDTH - halfWidth);
-    const targetY = THREE.MathUtils.clamp(playerCenterY, halfHeight, WORLD_HEIGHT - halfHeight);
+    const targetX = THREE.MathUtils.clamp(
+      playerCenterX,
+      halfWidth,
+      Math.max(halfWidth, this.levelWidth - halfWidth),
+    );
+    const targetY = THREE.MathUtils.clamp(
+      playerCenterY,
+      halfHeight,
+      Math.max(halfHeight, this.levelHeight - halfHeight),
+    );
     this.camera.position.set(targetX, targetY, this.camera.position.z);
     this.camera.lookAt(targetX, targetY, 0);
   }
@@ -509,12 +611,24 @@ export class Game {
     spawnPulse(centerX, centerY, SLEEP_RADIUS);
 
     const radiusSq = SLEEP_RADIUS * SLEEP_RADIUS;
-    for (const enemy of this.enemies) {
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+      const enemy = this.enemies[i];
       const enemyCenterX = enemy.x + enemy.w / 2;
       const enemyCenterY = enemy.y + enemy.h / 2;
       const dx = enemyCenterX - centerX;
       const dy = enemyCenterY - centerY;
-      if (dx * dx + dy * dy <= radiusSq) {
+      if (dx * dx + dy * dy > radiusSq) continue;
+
+      if (enemy.kind === EnemyKind.Boss) {
+        sleepEnemy(enemy, this.elapsed, SLEEP_DURATION * 0.6);
+        if (typeof enemy.health === 'number') {
+          enemy.health -= 1;
+          if (enemy.health <= 0) {
+            this.defeatEnemy(i);
+            continue;
+          }
+        }
+      } else {
         sleepEnemy(enemy, this.elapsed);
       }
     }
@@ -546,13 +660,34 @@ export class Game {
     this.noteMeshes = [];
     for (const note of this.notes) {
       const mesh = new THREE.Mesh(
-        this.circleGeometry,
+        this.starGeometry,
         new THREE.MeshBasicMaterial({ color: NOTE_COLOR }),
       );
-      mesh.scale.set(0.8, 0.8, 1);
+      mesh.scale.set(0.9, 0.9, 1);
       mesh.position.set(note.x, note.y, 0.1);
       this.noteGroup.add(mesh);
       this.noteMeshes.push(mesh);
+    }
+  }
+
+  private refreshPickupMeshes(): void {
+    this.pickupMeshes.forEach((mesh) => {
+      this.pickupGroup.remove(mesh);
+      (mesh.material as THREE.Material).dispose?.();
+    });
+    this.pickupMeshes = [];
+    for (const pickup of this.pickups) {
+      const material = new THREE.MeshBasicMaterial({
+        color: PICKUP_COLOR,
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(this.heartGeometry, material);
+      mesh.scale.set(pickup.w, pickup.h, 1);
+      mesh.position.set(pickup.x + pickup.w / 2, pickup.y + pickup.h / 2, 0.05);
+      this.pickupGroup.add(mesh);
+      this.pickupMeshes.push(mesh);
     }
   }
 
@@ -590,20 +725,61 @@ export class Game {
         material.color.setHex(NOTE_COLLECTED_COLOR);
         mesh.visible = false;
       } else {
-        material.color.setHex(NOTE_COLOR);
+        material.color.copy(NOTE_BASE);
         mesh.visible = true;
       }
     }
   }
 
+  private syncPickupMeshes(): void {
+    for (let i = 0; i < this.pickups.length; i += 1) {
+      const pickup = this.pickups[i];
+      const mesh = this.pickupMeshes[i];
+      if (!mesh) continue;
+      mesh.visible = !pickup.collected;
+      if (!pickup.collected) {
+        mesh.position.set(pickup.x + pickup.w / 2, pickup.y + pickup.h / 2, 0.05);
+      }
+    }
+  }
+
   private updateCheckpointMesh(): void {
+    this.checkpointMesh.scale.set(this.checkpointRect.w, this.checkpointRect.h, 1);
     this.checkpointMesh.position.set(
-      CHECKPOINT.x + CHECKPOINT_SIZE.w / 2,
-      CHECKPOINT.y + CHECKPOINT_SIZE.h / 2,
+      this.checkpointRect.x + this.checkpointRect.w / 2,
+      this.checkpointRect.y + this.checkpointRect.h / 2,
       0,
     );
     const material = this.checkpointMesh.material as THREE.MeshBasicMaterial;
     material.color.setHex(this.checkpointActive ? CHECKPOINT_ACTIVE_COLOR : CHECKPOINT_COLOR);
+  }
+
+  private animateNotes(dt: number): void {
+    this.noteSpinAccumulator += dt;
+    for (let i = 0; i < this.noteMeshes.length; i += 1) {
+      const mesh = this.noteMeshes[i];
+      if (!mesh.visible) continue;
+      const pulse = 0.9 + 0.12 * Math.sin(this.noteSpinAccumulator * 4 + i * 1.3);
+      mesh.rotation.z += dt * 2.5;
+      mesh.scale.set(pulse, pulse, 1);
+      const material = mesh.material as THREE.MeshBasicMaterial;
+      const glowFactor = (Math.sin(this.noteSpinAccumulator * 5 + i) + 1) / 2;
+      material.color.copy(NOTE_BASE).lerp(NOTE_GLOW, glowFactor * 0.6);
+    }
+  }
+
+  private animatePickups(): void {
+    for (let i = 0; i < this.pickupMeshes.length; i += 1) {
+      const pickup = this.pickups[i];
+      const mesh = this.pickupMeshes[i];
+      if (!mesh || pickup.collected) continue;
+      const t = this.elapsed * 3 + i;
+      const scalePulse = 1 + 0.1 * Math.sin(t);
+      mesh.scale.set(pickup.w * scalePulse, pickup.h * scalePulse, 1);
+      const material = mesh.material as THREE.MeshBasicMaterial;
+      const glow = (Math.sin(t * 1.4) + 1) / 2;
+      material.color.copy(PICKUP_BASE).lerp(PICKUP_GLOW, glow * 0.7);
+    }
   }
 
   private updatePulsesVisuals(): void {
@@ -663,7 +839,47 @@ export class Game {
       }
       return BOUNCE_AWAKE_COLOR;
     }
+    if (enemy.kind === EnemyKind.Boss) {
+      if (enemy.state === 'asleep') {
+        if (this.elapsed >= enemy.telegraphStart) {
+          return Math.sin(this.elapsed * 20) > 0 ? 0xffffff : BOSS_STUNNED_COLOR;
+        }
+        return BOSS_STUNNED_COLOR;
+      }
+      return BOSS_AWAKE_COLOR;
+    }
     return SLEEPER_AWAKE_COLOR;
+  }
+
+  private static createStarGeometry(
+    radius: number,
+    innerRadius: number,
+    points: number,
+  ): THREE.ShapeGeometry {
+    const shape = new THREE.Shape();
+    const step = Math.PI / points;
+    for (let i = 0; i < points * 2; i += 1) {
+      const r = i % 2 === 0 ? radius : innerRadius;
+      const angle = i * step - Math.PI / 2;
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle) * r;
+      if (i === 0) {
+        shape.moveTo(x, y);
+      } else {
+        shape.lineTo(x, y);
+      }
+    }
+    shape.closePath();
+    return new THREE.ShapeGeometry(shape);
+  }
+
+  private static createHeartGeometry(radius: number): THREE.ShapeGeometry {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, radius * 0.7);
+    shape.bezierCurveTo(radius, radius * 1.3, radius * 1.2, radius * 0.2, 0, -radius);
+    shape.bezierCurveTo(-radius * 1.2, radius * 0.2, -radius, radius * 1.3, 0, radius * 0.7);
+    shape.closePath();
+    return new THREE.ShapeGeometry(shape);
   }
 
   private intersects(entity: { x: number; y: number; w: number; h: number }, rect: Rect): boolean {

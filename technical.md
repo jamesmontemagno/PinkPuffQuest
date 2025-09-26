@@ -38,7 +38,7 @@ Ultra‑lean version aligned with `mvp.md`: one playable level, two enemy types,
     types.d.ts        # (optional) misc types
     entities.ts       # Player, Enemy, Collectible classes
     sleepPulse.ts     # Pulse visual + hit check
-    level1.ts         # Platforms, spawns, notes, gate, checkpoint
+  levels.ts         # Platforms, spawns, pickups, gate, checkpoints per level
     hud.ts            # Simple DOM update helpers
     input.ts          # Key state
     loop.ts           # Fixed timestep helper
@@ -191,7 +191,7 @@ export const MAX_HEALTH = 3;
 1. Tooling setup (Vite, TS config, ESLint/Prettier).
 2. Core loop + Game + Camera.
 3. Player movement & collision.
-4. Platforms & level1 definition.
+4. Platforms & levels data definition.
 5. Enemy base + Sleeper Platform.
 6. Sleep pulse system + cooldown.
 7. Bounce Critter & bounce interaction.
