@@ -1,3 +1,5 @@
+import { resumeAudio } from './audio';
+
 export type KeyState = Record<string, boolean>;
 
 const keys: KeyState = {};
@@ -5,6 +7,7 @@ const pressedOnce = new Set<string>();
 
 export function setupInput(): void {
   window.addEventListener('keydown', (event) => {
+    resumeAudio();
     if (!keys[event.code]) {
       pressedOnce.add(event.code);
     }

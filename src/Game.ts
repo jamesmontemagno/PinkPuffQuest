@@ -25,6 +25,7 @@ import { LevelManager, type LevelStart } from './state/LevelManager';
 import { clearPulses, getPulses, spawnPulse, updatePulses } from './sleepPulse';
 import { hideCompleteOverlay, showCompleteOverlay, updateHud } from './hud';
 import { EnemyKind, type LevelData, type Rect } from './types';
+import { playDamageSound, playNoteCollectSound } from './audio';
 
 const DEATH_Y = -5;
 
@@ -78,12 +79,16 @@ export class Game {
     updateEnemies(this.enemies, this.elapsed, dt);
 
     const interaction = handleEnemyInteractions(this.player, this.enemies, prevX, prevY, this.elapsed);
-    if (interaction.tookDamage && this.player.health <= 0) {
-      this.respawn();
+    if (interaction.tookDamage) {
+      playDamageSound();
+      if (this.player.health <= 0) {
+        this.respawn();
+      }
     }
 
     const noteResult = collectNotes(this.player, this.notes);
     if (noteResult.collectedIndices.length > 0) {
+      playNoteCollectSound();
       for (const index of noteResult.collectedIndices) {
         this.world.markNoteCollected(index);
       }

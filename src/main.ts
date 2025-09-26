@@ -1,7 +1,8 @@
 import { Game } from './Game';
 import { setupInput } from './input';
-import { setupHud, onRestart } from './hud';
+import { setupHud, onRestart, updateFpsDisplay } from './hud';
 import { startLoop } from './loop';
+import { createFpsMeter } from './fps';
 
 function bootstrap() {
   const app = document.getElementById('app');
@@ -11,6 +12,7 @@ function bootstrap() {
   setupInput();
 
   const game = new Game(app);
+  const fpsMeter = createFpsMeter(updateFpsDisplay);
 
   onRestart(() => {
     game.reset();
@@ -19,6 +21,7 @@ function bootstrap() {
   startLoop({
     update: (dt) => game.update(dt),
     render: () => game.render(),
+    onFrame: (frameMs) => fpsMeter.sample(frameMs),
   });
 
   window.addEventListener('resize', () => game.resize());

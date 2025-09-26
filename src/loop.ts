@@ -1,11 +1,12 @@
 interface LoopCallbacks {
   update: (dt: number) => void;
   render: () => void;
+  onFrame?: (frameTimeMs: number) => void;
 }
 
 const STEP_MS = (1 / 60) * 1000;
 
-export function startLoop({ update, render }: LoopCallbacks): void {
+export function startLoop({ update, render, onFrame }: LoopCallbacks): void {
   let last = performance.now();
   let acc = 0;
 
@@ -20,6 +21,9 @@ export function startLoop({ update, render }: LoopCallbacks): void {
     }
 
     render();
+    if (onFrame) {
+      onFrame(delta);
+    }
     requestAnimationFrame(frame);
   }
 
