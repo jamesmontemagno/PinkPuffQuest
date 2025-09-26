@@ -23,9 +23,14 @@ import { applySleepPulse, handleEnemyInteractions, updateEnemies } from './syste
 import { WorldRenderer } from './render/WorldRenderer';
 import { LevelManager, type LevelStart } from './state/LevelManager';
 import { clearPulses, getPulses, spawnPulse, updatePulses } from './sleepPulse';
-import { hideCompleteOverlay, showCompleteOverlay, updateHud } from './hud';
+import { hideCompleteOverlay, playConfettiBurst, showCompleteOverlay, updateHud } from './hud';
 import { EnemyKind, type LevelData, type Rect } from './types';
-import { playDamageSound, playNoteCollectSound } from './audio';
+import {
+  playDamageSound,
+  playJumpSound,
+  playNoteCollectSound,
+  playSleepPulseSound,
+} from './audio';
 
 const DEATH_Y = -5;
 
@@ -47,6 +52,11 @@ export class Game {
   private checkpointActive = false;
   private completed = false;
   private bossRemaining = 0;
+  private bossTotal = 0;
+  private bossHealthTotal = 0;
+  private bossHealthCurrent = 0;
+  private transitionPending = false;
+  private transitionHandle: number | null = null;
 
   constructor(container: HTMLElement) {
     this.world = new WorldRenderer(container);
@@ -62,6 +72,12 @@ export class Game {
 
   update(dt: number): void {
     if (this.completed) {
+      updatePulses(dt);
+      this.world.updatePulsesVisuals(getPulses());
+      return;
+    }
+
+    if (this.transitionPending) {
       updatePulses(dt);
       this.world.updatePulsesVisuals(getPulses());
       return;
@@ -128,16 +144,23 @@ export class Game {
   }
 
   private initializeLevel(levelStart: LevelStart): void {
+    if (this.transitionHandle !== null) {
+      window.clearTimeout(this.transitionHandle);
+      this.transitionHandle = null;
+    }
+
     this.level = levelStart.level;
     this.noteGoal = levelStart.noteGoal;
     this.noteTotal = levelStart.noteGoal;
     this.elapsed = 0;
     this.completed = false;
+    this.transitionPending = false;
     this.checkpointActive = false;
     this.checkpointRect = levelStart.checkpoint;
     this.gateRect = levelStart.gate;
     this.levelBounds = levelStart.bounds;
     this.bossRemaining = levelStart.bossCount;
+  this.bossTotal = levelStart.bossCount;
 
     clearPulses();
     this.world.clearPulseVisuals();
@@ -148,6 +171,16 @@ export class Game {
 
     this.enemies = this.level.enemies.map((spawn) => createEnemy(spawn));
     this.world.refreshEnemies(this.enemies);
+
+    const bosses = this.enemies.filter((enemy) => enemy.kind === EnemyKind.Boss);
+    this.bossHealthTotal = bosses.reduce<number>(
+      (sum, enemy) => sum + (typeof enemy.health === 'number' ? enemy.health : 0),
+      0,
+    );
+    if (this.bossHealthTotal === 0 && this.bossRemaining > 0) {
+      this.bossHealthTotal = this.bossRemaining;
+    }
+    this.bossHealthCurrent = this.bossHealthTotal;
 
     this.notes = this.level.notes.map((spawn) => createCollectible(spawn));
     this.world.refreshNotes(this.notes);
@@ -177,6 +210,8 @@ export class Game {
       this.noteTotal,
       this.levelManager.getCurrentIndex() + 1,
       this.level.name,
+      this.bossHealthCurrent,
+      this.bossHealthTotal,
     );
   }
 
@@ -199,6 +234,7 @@ export class Game {
       this.player.vy = JUMP_VELOCITY;
       this.player.grounded = false;
       this.player.coyoteTime = 0;
+      playJumpSound();
     }
 
     if (
@@ -220,6 +256,7 @@ export class Game {
 
   private checkGate(): void {
     if (this.completed) return;
+    if (this.transitionPending) return;
     if (this.player.notes < this.noteGoal) return;
     if (this.bossRemaining > 0) return;
     if (this.gateReached() || this.intersectsPlayer(this.gateRect)) {
@@ -240,8 +277,14 @@ export class Game {
     }
 
     if (result.levelStart) {
-      this.initializeLevel(result.levelStart);
-      hideCompleteOverlay();
+      this.transitionPending = true;
+      const transitionDelay = 2200;
+      playConfettiBurst(transitionDelay);
+      this.transitionHandle = window.setTimeout(() => {
+        this.transitionHandle = null;
+        this.initializeLevel(result.levelStart!);
+        hideCompleteOverlay();
+      }, transitionDelay);
     }
   }
 
@@ -250,8 +293,19 @@ export class Game {
     const centerX = this.player.x + this.player.w / 2;
     const centerY = this.player.y + this.player.h / 2;
     spawnPulse(centerX, centerY, SLEEP_RADIUS);
+    playSleepPulseSound();
 
-    const { defeatedIndices } = applySleepPulse(this.player, this.enemies, this.elapsed, SLEEP_RADIUS);
+    const { defeatedIndices, bossDamage } = applySleepPulse(
+      this.player,
+      this.enemies,
+      this.elapsed,
+      SLEEP_RADIUS,
+    );
+
+    if (bossDamage > 0) {
+      this.bossHealthCurrent = Math.max(0, this.bossHealthCurrent - bossDamage);
+    }
+
     if (defeatedIndices.length > 0) {
       defeatedIndices
         .sort((a, b) => a - b)
@@ -260,6 +314,9 @@ export class Game {
           const enemy = this.enemies[index];
           if (enemy?.kind === EnemyKind.Boss && this.bossRemaining > 0) {
             this.bossRemaining -= 1;
+            if (typeof enemy?.health === 'number') {
+              this.bossHealthCurrent = Math.max(0, this.bossHealthCurrent - Math.max(enemy.health, 0));
+            }
           }
           this.enemies.splice(index, 1);
           this.world.removeEnemyMesh(index);
@@ -291,6 +348,8 @@ export class Game {
       this.noteTotal,
       this.levelManager.getCurrentIndex() + 1,
       this.level.name,
+      this.bossHealthCurrent,
+      this.bossHealthTotal,
     );
   }
 

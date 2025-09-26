@@ -101,11 +101,12 @@ export function applySleepPulse(
   elapsed: number,
   radius: number,
   duration: number = SLEEP_DURATION,
-): { defeatedIndices: number[] } {
+): { defeatedIndices: number[]; bossDamage: number } {
   const centerX = player.x + player.w / 2;
   const centerY = player.y + player.h / 2;
   const radiusSq = radius * radius;
   const defeatedIndices: number[] = [];
+  let bossDamage = 0;
 
   for (let i = enemies.length - 1; i >= 0; i -= 1) {
     const enemy = enemies[i];
@@ -119,6 +120,7 @@ export function applySleepPulse(
       sleepEnemy(enemy, elapsed, duration * 0.6);
       if (typeof enemy.health === 'number') {
         enemy.health -= 1;
+        bossDamage += 1;
         if (enemy.health <= 0) {
           defeatedIndices.push(i);
           continue;
@@ -129,7 +131,7 @@ export function applySleepPulse(
     }
   }
 
-  return { defeatedIndices };
+  return { defeatedIndices, bossDamage };
 }
 
 function intersects(

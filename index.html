@@ -43,8 +43,8 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        gap: 8px;
-        pointer-events: none;
+        gap: 10px;
+        pointer-events: auto;
       }
 
       .pips {
@@ -113,6 +113,67 @@
         border: 2px solid #d7c9f4;
       }
 
+      .boss-hud {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        pointer-events: none;
+        min-width: 220px;
+      }
+
+      .boss-hud.visible {
+        display: flex;
+      }
+
+      .boss-label {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #4a3d6b;
+        background: #ffffffd0;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 2px solid #c4b3e5;
+      }
+
+      .boss-bar {
+        width: 240px;
+        height: 16px;
+        border-radius: 12px;
+        border: 2px solid #9c7cd4;
+        overflow: hidden;
+        background: linear-gradient(90deg, #f3ecff 0%, #ddd2f6 100%);
+        position: relative;
+      }
+
+      .boss-bar-fill {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, #ff8ba7 0%, #ffc3a0 100%);
+        width: 100%;
+        transform-origin: left center;
+        transition: width 0.25s ease;
+      }
+
+      .boss-bar-text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #4a3d6b;
+        text-shadow: 0 1px 2px #ffffffaa;
+        pointer-events: none;
+      }
+
       .fps {
         font-size: 14px;
         font-weight: 600;
@@ -121,6 +182,7 @@
         border-radius: 8px;
         border: 2px solid #d7c9f4;
         color: #4a3d6b;
+        pointer-events: none;
       }
 
       .level-label {
@@ -167,12 +229,74 @@
         width: 100%;
         height: 100%;
       }
+
+      .settings-toggle {
+        pointer-events: auto;
+        border: 2px solid #c4b3e5;
+        background: #ffffffd0;
+        color: #4a3d6b;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px #00000018;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .settings-toggle:hover,
+      .settings-toggle:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px #00000024;
+        outline: none;
+      }
+
+      .settings-panel {
+        pointer-events: auto;
+        min-width: 200px;
+        background: #ffffffee;
+        border: 2px solid #c4b3e5;
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 12px 30px #00000026;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        color: #4a3d6b;
+      }
+
+      .settings-panel.hidden {
+        display: none;
+      }
+
+      .settings-panel h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #7158b0;
+      }
+
+      .settings-toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+      }
+
+      .settings-toggle-row input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        accent-color: #9c7cd4;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <div id="app">
       <div class="hud">
-          <div class="level-label" data-hud="level">Level 1 — Prototype Meadow</div>
+        <div class="level-label" data-hud="level">Level 1 — Prototype Meadow</div>
         <div class="pips" data-hud="pips">
           <span class="pip full" data-index="0"></span>
           <span class="pip full" data-index="1"></span>
@@ -183,8 +307,36 @@
         </div>
         <div class="notes" data-hud="notes">♪ 0/5</div>
       </div>
+      <div class="boss-hud" data-hud="boss">
+        <div class="boss-label">Boss Vitality</div>
+        <div class="boss-bar">
+          <div class="boss-bar-fill" data-hud="boss-fill"></div>
+          <div class="boss-bar-text" data-hud="boss-text">0 / 0</div>
+        </div>
+      </div>
         <div class="hud-top-right">
           <div class="fps" data-hud="fps">FPS: 60</div>
+          <button class="settings-toggle" type="button" data-hud="settings-button" aria-haspopup="true" aria-expanded="false">
+            Audio &amp; Sound
+          </button>
+          <div
+            class="settings-panel hidden"
+            data-hud="settings-panel"
+            role="dialog"
+            aria-modal="false"
+            aria-label="Audio settings"
+            tabindex="-1"
+          >
+            <h3>Audio</h3>
+            <label class="settings-toggle-row">
+              <input type="checkbox" data-hud="music-toggle" checked />
+              <span>Background music</span>
+            </label>
+            <label class="settings-toggle-row">
+              <input type="checkbox" data-hud="sfx-toggle" checked />
+              <span>Sound effects</span>
+            </label>
+          </div>
         </div>
       <div class="complete-overlay" data-hud="complete">
         <div class="message">Level Complete!</div>

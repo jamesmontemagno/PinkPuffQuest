@@ -17,6 +17,10 @@ export function setupInput(): void {
   window.addEventListener('keyup', (event) => {
     keys[event.code] = false;
   });
+
+  window.addEventListener('pointerdown', () => {
+    resumeAudio();
+  });
 }
 
 export function getKey(code: string): boolean {
