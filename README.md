@@ -87,7 +87,7 @@ The output lives in `dist/` and can be hosted on any static web server.
 .
 ├─ index.html          # HUD markup and canvas host
 ├─ src/
-│  ├─ Game.ts          # Core game orchestration, physics, rendering
+│  ├─ Game.ts          # Game orchestrator wiring input, systems, and rendering
 │  ├─ entities.ts      # Entity factories and helpers
 │  ├─ levels.ts        # Multi-stage layouts, enemies, pickups, collectibles
 │  ├─ level1.ts        # Legacy re-export of levels for compatibility
@@ -96,6 +96,9 @@ The output lives in `dist/` and can be hosted on any static web server.
 │  ├─ sleepPulse.ts    # Sleep pulse lifecycle
 │  ├─ hud.ts           # HUD DOM updates
 │  ├─ config.ts        # Tunable constants
+│  ├─ render/          # Three.js scene graph, meshes, and animations
+│  ├─ state/           # Level progression and run tracking
+│  └─ systems/         # Physics, enemy, and collectible subsystems
 │  └─ main.ts          # Bootstraps the game
 ├─ vite.config.ts      # Vite configuration
 └─ tsconfig.json       # TypeScript compiler options
@@ -105,4 +108,5 @@ The output lives in `dist/` and can be hosted on any static web server.
 
 - Two moderate `npm audit` advisories are reported by transitive dependencies; review `npm audit` output if shipping to production.
 - The MVP omits audio, asset pipelines, and automated tests by design. Future iterations can add polish (animation, easing, additional levels) once the loop is validated.
+- Source is now modularized: rendering, state, and gameplay systems live in dedicated folders for easier iteration.
 - For convenience, consider wiring a keyboard shortcut to restart or add accessibility options after the MVP is playtested.

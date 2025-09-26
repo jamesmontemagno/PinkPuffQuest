@@ -16,8 +16,11 @@ Keep instructions short (this file is intentionally concise). These instructions
 
 - `index.html` — app entry HTML
 - `src/main.ts` — app bootstrap
-- `src/Game.ts` — main game logic
+- `src/Game.ts` — game orchestrator wiring input, systems, and rendering
 - `src/loop.ts`, `src/input.ts`, `src/hud.ts` — core systems
+- `src/render/` — Three.js scene, meshes, and animation helpers
+- `src/state/` — Level manager and run tracking
+- `src/systems/` — Physics, enemy, and collectible logic
 - `package.json`, `tsconfig.json`, `vite.config.ts` — build and tooling
 - `README.md`, `mvp.md`, `technical.md`, `idea.txt` — project docs and notes
 
@@ -67,6 +70,7 @@ Recommended local validation steps for changes:
 ## Useful context for common agent tasks
 
 - If asked to add a new feature, locate `src/` and prefer adding small modules and updating `src/main.ts` or `index.html` only when necessary.
+- Rendering tweaks usually belong in `src/render/`, gameplay/system changes in `src/systems/`, and level progression updates in `src/state/`.
 - If asked to fix build/type errors: run `npx tsc --noEmit` locally, resolve type errors, then re-run `npm run build`.
 - If asked to adjust visuals or gameplay: run `npm run dev` and inspect the browser console for runtime errors.
 
