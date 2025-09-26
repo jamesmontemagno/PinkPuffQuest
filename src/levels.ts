@@ -40,11 +40,11 @@ export const LEVELS: LevelData[] = [
       },
     ],
     notes: [
-      { x: 4, y: 2.2 },
-      { x: 18, y: 6.7 },
-      { x: 33, y: 6.3 },
-      { x: 45, y: 5 },
-      { x: 56, y: 3 },
+      { x: 5.5, y: 2.6 },
+      { x: 8, y: 4.1 },
+      { x: 21, y: 7.2 },
+      { x: 34, y: 6.8 },
+      { x: 54, y: 4.2 },
     ],
     pickups: [
       { kind: PickupKind.Health, x: 24, y: 3.3 },
@@ -99,12 +99,12 @@ export const LEVELS: LevelData[] = [
       },
     ],
     notes: [
-      { x: 6, y: 2.5 },
-      { x: 17, y: 7.8 },
-      { x: 34, y: 7.5 },
-      { x: 49, y: 7.7 },
-      { x: 66, y: 2 },
-      { x: 74, y: 2 },
+      { x: 4, y: 2.6 },
+      { x: 10, y: 5.2 },
+      { x: 24.5, y: 10.2 },
+      { x: 41.5, y: 6.2 },
+      { x: 49.5, y: 8.8 },
+      { x: 70, y: 2.6 },
     ],
     pickups: [
       { kind: PickupKind.Health, x: 37, y: 5.2 },
@@ -145,9 +145,9 @@ export const LEVELS: LevelData[] = [
       },
     ],
     notes: [
-      { x: 9, y: 2.5 },
-      { x: 30, y: 5.5 },
-      { x: 51, y: 2.5 },
+      { x: 13.5, y: 4.1 },
+      { x: 30, y: 6.2 },
+      { x: 47.5, y: 3.6 },
     ],
     pickups: [
       { kind: PickupKind.Health, x: 15, y: 1.5 },

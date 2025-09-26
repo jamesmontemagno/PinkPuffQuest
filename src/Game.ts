@@ -560,7 +560,7 @@ export class Game {
     if (this.completed) return;
     if (this.player.notes < this.noteGoal) return;
     if (this.bossRemaining > 0) return;
-    if (this.intersects(this.player, this.gateRect)) {
+    if (this.gateReached() || this.intersects(this.player, this.gateRect)) {
       this.advanceLevel();
     }
   }
@@ -573,6 +573,7 @@ export class Game {
       hideCompleteOverlay();
     } else {
       this.completed = true;
+      this.completionTime = this.runTime;
       const stats = `Dream Complete! Time: ${this.runTime.toFixed(1)}s — Notes: ${this.overallNotesCollected}/${this.overallNoteGoal}`;
       showCompleteOverlay(stats);
     }
@@ -888,6 +889,18 @@ export class Game {
       entity.x + entity.w > rect.x &&
       entity.y < rect.y + rect.h &&
       entity.y + entity.h > rect.y
+    );
+  }
+
+  private gateReached(): boolean {
+    const centerX = this.player.x + this.player.w / 2;
+    const centerY = this.player.y + this.player.h / 2;
+    const tolerance = 0.25;
+    return (
+      centerX >= this.gateRect.x - tolerance &&
+      centerX <= this.gateRect.x + this.gateRect.w + tolerance &&
+      centerY >= this.gateRect.y - tolerance &&
+      centerY <= this.gateRect.y + this.gateRect.h + tolerance
     );
   }
 }
