@@ -131,7 +131,7 @@ export const LEVELS: LevelData[] = [
       },
       {
         kind: EnemyKind.BounceCritter,
-        x: 11,
+        x: 16,
         y: 3.5,
         bob: { amp: 0.8, freq: 1.1 },
       },
