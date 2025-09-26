@@ -1,4 +1,5 @@
 interface HudElements {
+  levelLabel: HTMLElement;
   pips: HTMLElement[];
   cooldownFill: HTMLElement;
   notes: HTMLElement;
@@ -11,6 +12,7 @@ let elements: HudElements | null = null;
 
 export function setupHud(root: Document = document): void {
   elements = {
+    levelLabel: root.querySelector('[data-hud="level"]') as HTMLElement,
     pips: Array.from(root.querySelectorAll('[data-hud="pips"] .pip')) as HTMLElement[],
     cooldownFill: root.querySelector('[data-hud="cooldown"] .fill') as HTMLElement,
     notes: root.querySelector('[data-hud="notes"]') as HTMLElement,
@@ -20,7 +22,15 @@ export function setupHud(root: Document = document): void {
   };
 }
 
-export function updateHud(health: number, maxHealth: number, cooldownRatio: number, notes: number, noteTotal: number): void {
+export function updateHud(
+  health: number,
+  maxHealth: number,
+  cooldownRatio: number,
+  notes: number,
+  noteTotal: number,
+  levelNumber: number,
+  levelName: string,
+): void {
   if (!elements) return;
 
   elements.pips.forEach((pip, index) => {
@@ -30,6 +40,9 @@ export function updateHud(health: number, maxHealth: number, cooldownRatio: numb
   const clamped = Math.min(Math.max(cooldownRatio, 0), 1);
   elements.cooldownFill.style.height = `${(1 - clamped) * 100}%`;
   elements.notes.textContent = `♪ ${notes}/${noteTotal}`;
+  if (elements.levelLabel) {
+    elements.levelLabel.textContent = `Level ${levelNumber} — ${levelName}`;
+  }
 }
 
 export function showCompleteOverlay(stats: string): void {

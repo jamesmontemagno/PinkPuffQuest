@@ -102,6 +102,15 @@
         border: 2px solid #d7c9f4;
       }
 
+      .level-label {
+        font-size: 16px;
+        font-weight: 600;
+        background: #ffffffa0;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 2px solid #d7c9f4;
+      }
+
       .complete-overlay {
         position: absolute;
         inset: 0;
@@ -137,6 +146,7 @@
   <body>
     <div id="app">
       <div class="hud">
+          <div class="level-label" data-hud="level">Level 1 — Prototype Meadow</div>
         <div class="pips" data-hud="pips">
           <span class="pip full" data-index="0"></span>
           <span class="pip full" data-index="1"></span>

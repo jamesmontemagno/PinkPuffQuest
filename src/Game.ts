@@ -164,7 +164,15 @@ export class Game {
 
     this.world.syncPlayer(this.player, this.elapsed, { force: true });
 
-    updateHud(this.player.health, MAX_HEALTH, 0, this.player.notes, this.noteTotal);
+    updateHud(
+      this.player.health,
+      MAX_HEALTH,
+      0,
+      this.player.notes,
+      this.noteTotal,
+      this.levelManager.getCurrentIndex() + 1,
+      this.level.name,
+    );
   }
 
   private handleInput(dt: number): void {
@@ -270,7 +278,15 @@ export class Game {
   private updateHud(): void {
     const remaining = Math.max(0, this.player.sleepReadyAt - this.elapsed);
     const ratio = remaining / SLEEP_COOLDOWN;
-    updateHud(this.player.health, MAX_HEALTH, ratio, this.player.notes, this.noteTotal);
+    updateHud(
+      this.player.health,
+      MAX_HEALTH,
+      ratio,
+      this.player.notes,
+      this.noteTotal,
+      this.levelManager.getCurrentIndex() + 1,
+      this.level.name,
+    );
   }
 
   private intersectsPlayer(rect: Rect): boolean {
