@@ -5,13 +5,13 @@ export const LEVELS: LevelData[] = [
     name: 'Prototype Meadow',
     platforms: [
       { x: 0, y: 0, w: 64, h: 1 },
-      { x: 6, y: 2, w: 4, h: 1 },
-      { x: 12, y: 3.5, w: 5, h: 1 },
-      { x: 19, y: 5.5, w: 4, h: 1 },
-      { x: 27, y: 2.5, w: 5, h: 1 },
-      { x: 32, y: 4.5, w: 4, h: 1 },
-      { x: 42, y: 3, w: 5, h: 1 },
-      { x: 52, y: 2, w: 6, h: 1 },
+      { x: 6, y: 1.8, w: 4, h: 1 },
+      { x: 12, y: 3.2, w: 5, h: 1 },
+      { x: 19, y: 4.8, w: 4, h: 1 },
+      { x: 27, y: 2.3, w: 5, h: 1 },
+      { x: 32, y: 4, w: 4, h: 1 },
+      { x: 42, y: 2.8, w: 5, h: 1 },
+      { x: 52, y: 1.8, w: 6, h: 1 },
     ],
     enemies: [
       {
@@ -57,13 +57,13 @@ export const LEVELS: LevelData[] = [
     name: 'Dreamy Cliffs',
     platforms: [
       { x: 0, y: 0, w: 78, h: 1 },
-      { x: 8, y: 3, w: 4, h: 1 },
-      { x: 15, y: 5.5, w: 4, h: 1 },
-      { x: 22, y: 8, w: 5, h: 1 },
-      { x: 30, y: 6, w: 6, h: 1 },
-      { x: 39, y: 4, w: 5, h: 1 },
-      { x: 47, y: 6.5, w: 5, h: 1 },
-  { x: 55, y: 3, w: 6, h: 1 },
+      { x: 8, y: 2.4, w: 4, h: 1 },
+      { x: 15, y: 5, w: 4, h: 1 },
+      { x: 22, y: 7.2, w: 5, h: 1 },
+      { x: 30, y: 5.4, w: 6, h: 1 },
+      { x: 39, y: 3.6, w: 5, h: 1 },
+      { x: 47, y: 5.4, w: 5, h: 1 },
+      { x: 55, y: 2.6, w: 6, h: 1 },
     ],
     enemies: [
       {
@@ -117,9 +117,9 @@ export const LEVELS: LevelData[] = [
     name: 'Moonlit Arena',
     platforms: [
       { x: 0, y: 0, w: 64, h: 1 },
-      { x: 12, y: 2, w: 4, h: 0.8 },
-      { x: 38, y: 2, w: 4, h: 0.8 },
-      { x: 24, y: 4, w: 12, h: 0.8 },
+      { x: 12, y: 1.8, w: 4, h: 0.8 },
+      { x: 38, y: 1.8, w: 4, h: 0.8 },
+      { x: 24, y: 3.6, w: 12, h: 0.8 },
     ],
     enemies: [
       {
