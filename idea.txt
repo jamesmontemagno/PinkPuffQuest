@@ -1,0 +1,145 @@
+Title: Pink Puff Quest (Working Title)  
+Tagline: Sing, snooze, and bounce through a whimsical side‑scrolling dream adventure starring Puff.
+
+1. High-Level Concept
+Puff embarks on a lighthearted 2D side‑scrolling journey across themed regions to reach the Dreamspire, a legendary place where perfect lullabies are born. The twist: Puff’s signature power is putting foes (and sometimes the environment) to sleep, creating playful opportunities rather than relying purely on direct damage.
+
+2. Core Player Fantasy
+Feel clever, cozy, and a little mischievous as you:  
+- Use soothing sleep powers to neutralize threats.  
+- Convert enemies into temporary platforms or harmless nap obstacles.  
+- Time jumps and gentle interactions in a kid‑friendly, low‑frustration platforming flow.  
+- Progress through charming, melodic worlds culminating in an uplifting finale.
+
+3. Target Audience & Tone
+- Primary: Kids 6–12; secondary: nostalgic casual players.  
+- Tone: Whimsical, friendly, pastel, low pressure; mild stakes, no harsh failure states.  
+- Emotional palette: Comfort, curiosity, delight, playful surprise.
+
+4. Design Pillars
+1) Gentle Challenge: Forgiving platforming; mistakes teach without punishing.  
+2) Musical Whimsy: Subtle rhythmic elements; soft audio cues reinforce timing.  
+3) Creative Pacification: Sleep status alters level navigation (platforms, blockers, secrets).  
+4) Progressive Discovery: Each world introduces a fresh twist on Sleep and Jump interactions.  
+5) Accessibility First: Options reduce frustration (assist toggles, simplified inputs).
+
+5. Player Character (PC)
+- Moves: Walk, run (slight speed burst), jump (single + later conditional mid‑air hop), puff float (short controlled descent), Sleep Song.  
+- Personality: Encouraging, expressive animations (eyes brighten, gentle breathing when idle).  
+- Feedback: Soft visual pulse & musical note particles during key actions.
+
+6. Core Mechanics (MVP Scope)
+- Horizontal Movement & Jumping: Classic side scroller feel; consistent jump arc.  
+- Sleep Song (Primary Ability): Short wind‑up; releases a lullaby wave affecting a limited radius.  
+- Sleep State Effects (Enemies): Stop moving; become bouncy or standable based on type; awaken after a short duration or when bounced repeatedly.  
+- Light Stomp: Jumping on certain enemies triggers a mild bounce (never violent).  
+- Collectibles: Lullaby Notes (basic), Golden Melody Shards (rare per level).  
+- Health / Failure: Prefer “drowsiness meter” (3–5 pips). On depletion: gentle rewind to recent checkpoint cloud.  
+- Checkpoints: Visible dream pillows; touching them triggers a soft chime.  
+- Goal Object: End-level Dream Gate; final world ends at the Dreamspire stage.
+
+7. Signature Ability: Sleep Song
+- Purpose: Non-lethal crowd control + platform creation.  
+- Range: Expands slightly per world to reinforce growth.  
+- Interactions:  
+	* Standard enemy: Falls asleep; can be stood upon (stable).  
+	* Bouncy enemy: Asleep version acts like a trampoline.  
+	* Large sleepy beast (mini-set piece): Becomes a multi-tier platform when lulled.  
+	* Environmental Flora (special levels): Buds close, forming safe ledges.  
+- Limiters: Cooldown or short “breath” recovery to encourage timing (still non-technical in presentation).  
+- Risk/Reward: Over-reliance risks lull wearing off mid-jump path puzzle.
+
+8. Enemy & NPC Archetypes (Initial Set)
+Friendly / Neutral:  
+- Dream Sprites: Floating hint-givers; optional tip when booped.  
+
+Hostile (All become harmless or helpful when asleep):  
+- Tumble Shroom: Rolls along platforms; asleep = stationary spring.  
+- Flutter Bat: Patrols short arcs; asleep = hangs and can be bounced from below.  
+- Grumble Rock: Paces; asleep = slow lift (gentle vertical rise then snores back down).  
+- Puffy Puffer: Drifts; asleep = slowly deflates into a safe cloud platform.  
+- Drowsy Snail (armored): Requires two lullaby pulses (visual shell shimmer between).  
+- Mini-Boss Variant (per world): Pattern teaches new sleep interaction (e.g., put feet to sleep to halt stomps, then head).  
+
+9. Level & World Structure (Proposed 5-World MVP)
+World 1: Meadow of Murmurs – Teaches basics; flat, friendly pacing.  
+World 2: Lullaby Forest – Introduces vertical layering & bounce enemies.  
+World 3: Moonlit Marsh – Introduces moving sleepy platforms + gentle water hazards (no drowning; slow you).  
+World 4: Cloud Chorus Peaks – Air currents + mid-air hop introduction + timing over awakening foes.  
+World 5: Dreamspire Approach – Combination trials; melodic puzzle sections; finale concert encounter (non-violent set piece).  
+- Each world: 4 standard stages + 1 capstone (mini-boss or set piece) (adjustable).  
+- Secret Rooms: Optional skill checks; reward shards or cosmetic tune fragments.
+
+10. Progression & Rewards
+- Melody Meter: Filling via collectibles unlocks simple cosmetic “song variations” (alternate background motif).  
+- Golden Melody Shards: Collect set per world to unlock a short lullaby snippet in the Sound Gallery.  
+- Soft Difficulty Ramp: Later worlds extend timing windows rather than shrinking them; complexity grows via layering interactions.  
+- Optional Challenges: “No Wake” (avoid reawakening enemies), “Speed Nap” (finish before first sleep wears off).
+
+11. Difficulty & Failure Philosophy
+- Emphasis on experimentation: Repeated failure quickly loops back with minimal friction.  
+- Checkpoints generously placed at learning beats.  
+- Assist Options (toggleable): Longer sleep duration, reduced enemy patrol speed, infinite puff float.  
+- Encourages self-set goals (collect all shards vs. simply finish).  
+
+12. User Interface / HUD (High-Level)
+- Minimal: Drowsiness pips, Sleep Song readiness icon (simple musical note fill), collectible counter.  
+- Contextual cues appear only when new mechanic surfaces (first bounce enemy etc.).  
+- Pause Menu: Stage name, shard progress, assist toggles.  
+
+13. Audio & Visual Mood (Descriptive, Non-Technical)
+- Palette: Soft gradients, gentle pastels with brighter accents in interactive elements.  
+- Visual Language: Rounded shapes for safety, subtle bloom on dream elements.  
+- Audio: Light music box + soft synth pads; Sleep Song motif evolves per world.  
+- Feedback: Sleep success = muffled mix + little z-note particles.  
+
+14. Accessibility & Inclusivity
+- Color-agnostic critical cues (shapes + icons).  
+- Optional text hints vs. audio only.  
+- Adjustable game speed (e.g., 90%, 100%, 110%) to aid timing comfort.  
+- Reduced animation intensity mode.  
+- Simple control mapping & single-button assist (auto-jump or auto-song) modes.  
+
+15. Scope (MVP vs. Future)
+MVP Includes: 5 worlds, core Sleep + Jump + Float, baseline enemy set (6–7), melody collectibles, assist options.  
+Deferred / Future: Co-op mode, level editor, advanced combo sleep chaining, dynamic rhythm minigames, seasonal cosmetic events.
+
+16. Success Criteria (Qualitative)
+- Kids can clear first world with < minimal retries per stage.  
+- Playtesters describe mood as “relaxing” or “comforting.”  
+- Sleep Song used strategically (not spammed blindly) in later worlds.  
+- Collectible completion provides mild replay without mandatory grind.
+
+17. Risks & Mitigations
+- Over-Simplicity: Introduce layered multi-entity sleep puzzles gradually.  
+- Repetition: Vary sleep effects (platform, bounce, lift, deflate).  
+- Pacing Drag: Cap lull length; awaken chain reactions keep flow.  
+- Frustration: Frequent checkpoints + assist toggles.  
+- Scope Creep: Strict MVP list; future features logged separately.
+
+18. Production Notes (Non-Technical)
+- Prioritize vertical slice: One full Meadow stage with 3 enemy types + Sleep interactions.  
+- Iterative Playtests: Focus on clarity of Sleep feedback & friendliness of failure loops.  
+- Kid Feedback Sessions early to tune timing leniency.
+
+19. Ethical & Comfort Considerations
+- No violent elimination; all pacification reversible.  
+- Avoid themes that could distress (e.g., darkness, isolation); maintain safe dream vibe.  
+- Clear distinction between rest (positive) and failure (gentle reset, not punishment).
+
+20. Legal / IP Note
+This concept now uses an original character named “Puff” for Pink Puff Quest. Any resemblance to third-party characters is coincidental. Retain originality by maintaining distinct visual style, naming, and narrative framing.
+
+21. Immediate Next Steps (For Development Team)
+1) Confirm character naming strategy (original vs. placeholder).  
+2) Define vertical slice stage goals (enemy subset, collectibles, Sleep interactions).  
+3) Build paper/whiteboard mock of first level flow.  
+4) Draft initial enemy behavior list (plain language).  
+5) Conduct first kid-friendly thematic review for tone validation.
+
+Appendix: Quick Reference
+Core Verbs: Move, Jump, Float, Sleep Song, Bounce.  
+Loop: Explore -> Encounter -> Sleep -> Traverse altered state -> Collect -> Reach Gate.  
+Player Promise: “Every obstacle can be softened or repurposed with a gentle lull.”
+
+-- End of High-Level Design Spec --

@@ -1,0 +1,62 @@
+# Node dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+/.parcel-cache
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# Logs
+npm-debug.log*
+ yarn-debug.log*
+ yarn-error.log*
+ pnpm-debug.log*
+
+# Environment files
+.env
+.env.*.local
+*.local
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editor directories and files
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# Generated and cache files
+/out/
+coverage/
+.turbo/
+
+# TypeScript cache
+*.tscache
+
+# Optional npm cache
+.npm
+
+# Temporary
+*.tmp
+*.temp
+*.swp
+
+# Misc
+.DS_Store?
+Thumbs.db
+
+# Allow list - keep these in the repo if present
+!index.html
+!src/**
