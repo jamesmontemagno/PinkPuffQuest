@@ -47,6 +47,8 @@ export function collectPickups(player: Player, pickups: Pickup[]): PickupCollect
       player.health = Math.min(MAX_HEALTH, player.health + 1);
       healthRestored += player.health - before;
     }
+    // Golden Melody Shards don't restore health but are valuable collectibles
+    // The collection is tracked by the level manager for progression/unlocks
   }
 
   return { collectedIndices, healthRestored };

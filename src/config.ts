@@ -12,3 +12,8 @@ export const TELEGRAPH_WINDOW = 0.5;
 export const MAX_HEALTH = 3;
 export const WORLD_WIDTH = 64;
 export const WORLD_HEIGHT = 16;
+
+// Puff Float ability constants
+export const FLOAT_DURATION = 2.0;
+export const FLOAT_GRAVITY_REDUCTION = 0.3;
+export const FLOAT_COOLDOWN = 3.0;

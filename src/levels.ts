@@ -27,16 +27,17 @@ export const LEVELS: LevelData[] = [
         bob: { amp: 1, freq: 1.2 },
       },
       {
-        kind: EnemyKind.SleeperPlatform,
+        kind: EnemyKind.GrumbleRock,
         x: 36,
         y: 5,
         patrol: { xMin: 34, xMax: 40 },
+        lift: { height: 2.5, duration: 5 },
       },
       {
-        kind: EnemyKind.BounceCritter,
+        kind: EnemyKind.PuffyPuffer,
         x: 48,
-        y: 3.5,
-        bob: { amp: 1.2, freq: 1 },
+        y: 4.5,
+        patrol: { xMin: 46, xMax: 52 },
       },
     ],
     notes: [
@@ -48,6 +49,7 @@ export const LEVELS: LevelData[] = [
     ],
     pickups: [
       { kind: PickupKind.Health, x: 24, y: 3.3 },
+      { kind: PickupKind.GoldenMelodyShard, x: 40, y: 7 },
     ],
     checkpoint: { x: 32, y: 1 },
     gate: { x: 60, y: 1, w: 2, h: 4 },
@@ -79,22 +81,24 @@ export const LEVELS: LevelData[] = [
         bob: { amp: 1.2, freq: 0.9 },
       },
       {
-        kind: EnemyKind.SleeperPlatform,
+        kind: EnemyKind.DrowsySnail,
         x: 28,
         y: 7.2,
         patrol: { xMin: 27, xMax: 35 },
+        sleepPulsesRequired: 2,
       },
       {
-        kind: EnemyKind.BounceCritter,
+        kind: EnemyKind.PuffyPuffer,
         x: 42,
         y: 5.5,
-        bob: { amp: 1.3, freq: 1.4 },
+        patrol: { xMin: 40, xMax: 46 },
       },
       {
-        kind: EnemyKind.SleeperPlatform,
+        kind: EnemyKind.GrumbleRock,
         x: 57,
         y: 4,
         patrol: { xMin: 55, xMax: 61 },
+        lift: { height: 3, duration: 6 },
       },
     ],
     notes: [
@@ -107,6 +111,7 @@ export const LEVELS: LevelData[] = [
     ],
     pickups: [
       { kind: PickupKind.Health, x: 37, y: 5.2 },
+      { kind: PickupKind.GoldenMelodyShard, x: 25, y: 11 },
       { kind: PickupKind.Health, x: 70, y: 1.5 },
     ],
     checkpoint: { x: 40, y: 1 },
@@ -149,6 +154,7 @@ export const LEVELS: LevelData[] = [
     ],
     pickups: [
       { kind: PickupKind.Health, x: 15, y: 1.5 },
+      { kind: PickupKind.GoldenMelodyShard, x: 30, y: 7 },
       { kind: PickupKind.Health, x: 45, y: 1.5 },
     ],
     checkpoint: { x: 10, y: 1 },

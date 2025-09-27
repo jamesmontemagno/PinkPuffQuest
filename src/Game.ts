@@ -1,5 +1,7 @@
 import {
   COYOTE_TIME,
+  FLOAT_COOLDOWN,
+  FLOAT_DURATION,
   JUMP_VELOCITY,
   MAX_HEALTH,
   PLAYER_SPEED,
@@ -199,6 +201,10 @@ export class Game {
     this.player.invulnerableUntil = 0;
     this.player.grounded = false;
     this.player.coyoteTime = 0;
+    // Initialize Puff Float ability
+    this.player.isFloating = false;
+    this.player.floatUntil = 0;
+    this.player.floatReadyAt = 0;
 
     this.world.syncPlayer(this.player, this.elapsed, { force: true });
 
@@ -227,6 +233,11 @@ export class Game {
       this.player.coyoteTime = Math.max(0, this.player.coyoteTime - dt);
     }
 
+    // Update float state
+    if (this.player.isFloating && this.elapsed >= this.player.floatUntil) {
+      this.player.isFloating = false;
+    }
+
     if (
       consumeAnyKeyPress(['Space', 'KeyZ', 'ArrowUp', 'KeyW']) &&
       (this.player.grounded || this.player.coyoteTime > 0)
@@ -235,6 +246,18 @@ export class Game {
       this.player.grounded = false;
       this.player.coyoteTime = 0;
       playJumpSound();
+    }
+
+    // Puff Float ability (Hold S or Down Arrow)
+    if (
+      (getKey('KeyS') || getKey('ArrowDown')) &&
+      !this.player.grounded &&
+      this.elapsed >= this.player.floatReadyAt &&
+      !this.player.isFloating
+    ) {
+      this.player.isFloating = true;
+      this.player.floatUntil = this.elapsed + FLOAT_DURATION;
+      this.player.floatReadyAt = this.elapsed + FLOAT_COOLDOWN;
     }
 
     if (

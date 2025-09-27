@@ -55,6 +55,75 @@ export function updateEnemies(enemies: Enemy[], elapsed: number, dt: number): vo
       } else {
         enemy.y = enemy.baseY;
       }
+    } else if (enemy.kind === EnemyKind.GrumbleRock) {
+      if (enemy.state === 'awake') {
+        enemy.x += enemy.vx * dt;
+        if (enemy.patrol) {
+          if (enemy.x < enemy.patrol.xMin) {
+            enemy.x = enemy.patrol.xMin;
+            enemy.direction = 1;
+            enemy.vx = Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+          }
+          if (enemy.x + enemy.w > enemy.patrol.xMax) {
+            enemy.x = enemy.patrol.xMax - enemy.w;
+            enemy.direction = -1;
+            enemy.vx = -Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+          }
+        }
+      } else if (enemy.state === 'asleep' && enemy.lift) {
+        // Slow lift behavior when asleep
+        if (enemy.liftProgress !== undefined && enemy.liftStartY !== undefined) {
+          enemy.liftProgress += dt / enemy.lift.duration;
+          if (enemy.liftProgress >= 1) {
+            enemy.liftProgress = 0; // Reset for next cycle
+          }
+          // Sine wave for smooth up and down motion
+          const liftOffset = Math.sin(enemy.liftProgress * Math.PI) * enemy.lift.height;
+          enemy.y = enemy.liftStartY + liftOffset;
+        }
+      }
+    } else if (enemy.kind === EnemyKind.PuffyPuffer) {
+      if (enemy.state === 'awake') {
+        // Drift slowly
+        enemy.x += enemy.vx * dt;
+        if (enemy.patrol) {
+          if (enemy.x < enemy.patrol.xMin) {
+            enemy.x = enemy.patrol.xMin;
+            enemy.direction = 1;
+            enemy.vx = Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+          }
+          if (enemy.x + enemy.w > enemy.patrol.xMax) {
+            enemy.x = enemy.patrol.xMax - enemy.w;
+            enemy.direction = -1;
+            enemy.vx = -Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+          }
+        }
+        // Gentle floating motion
+        enemy.y = enemy.baseY + Math.sin(elapsed * 0.8) * 0.5;
+      } else if (enemy.state === 'asleep') {
+        // Slowly deflate into a platform
+        if (enemy.deflationProgress !== undefined) {
+          enemy.deflationProgress = Math.min(1, enemy.deflationProgress + dt * 0.5);
+          enemy.y = enemy.baseY + enemy.deflationProgress * 0.6;
+        }
+      }
+    } else if (enemy.kind === EnemyKind.DrowsySnail) {
+      if (enemy.state === 'awake') {
+        enemy.x += enemy.vx * dt;
+        if (enemy.patrol) {
+          if (enemy.x < enemy.patrol.xMin) {
+            enemy.x = enemy.patrol.xMin;
+            enemy.direction = 1;
+            enemy.vx = Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+          }
+          if (enemy.x + enemy.w > enemy.patrol.xMax) {
+            enemy.x = enemy.patrol.xMax - enemy.w;
+            enemy.direction = -1;
+            enemy.vx = -Math.abs(enemy.awakeSpeedX ?? enemy.vx);
+          }
+        }
+      }
+      // Note: DrowsySnail requires multiple sleep pulses to fully sleep
     }
   }
 }
@@ -75,6 +144,29 @@ export function handleEnemyInteractions(
       if (wasAbove && player.vy <= 0) {
         player.y = enemy.y + enemy.h;
         bouncePlayer(player);
+      }
+      continue;
+    }
+
+    // GrumbleRock lift behavior when player stands on sleeping rock
+    if (enemy.kind === EnemyKind.GrumbleRock && enemy.state === 'asleep') {
+      const wasAbove = prevY >= enemy.y + enemy.h - 0.1;
+      if (wasAbove && player.vy <= 0) {
+        // Player rides the lifting rock
+        player.y = enemy.y + enemy.h;
+        player.vy = 0;
+        player.grounded = true;
+      }
+      continue;
+    }
+
+    // PuffyPuffer safe cloud platform when asleep
+    if (enemy.kind === EnemyKind.PuffyPuffer && enemy.state === 'asleep') {
+      const wasAbove = prevY >= enemy.y + enemy.h * 0.6 - 0.1;
+      if (wasAbove && player.vy <= 0) {
+        player.y = enemy.y + enemy.h * 0.6;
+        player.vy = 0;
+        player.grounded = true;
       }
       continue;
     }
@@ -126,8 +218,25 @@ export function applySleepPulse(
           continue;
         }
       }
+    } else if (enemy.kind === EnemyKind.DrowsySnail) {
+      // Handle armored enemy requiring multiple sleep pulses
+      if (enemy.sleepPulsesReceived !== undefined && enemy.sleepPulsesRequired !== undefined) {
+        enemy.sleepPulsesReceived += 1;
+        if (enemy.sleepPulsesReceived >= enemy.sleepPulsesRequired) {
+          sleepEnemy(enemy, elapsed, duration);
+          enemy.sleepPulsesReceived = 0; // Reset for next time
+        }
+        // Visual feedback: shell shimmer between pulses could be added in renderer
+      }
     } else {
       sleepEnemy(enemy, elapsed, duration);
+      // Initialize special behaviors for new enemies
+      if (enemy.kind === EnemyKind.PuffyPuffer) {
+        enemy.deflationProgress = 0; // Start deflation animation
+      } else if (enemy.kind === EnemyKind.GrumbleRock) {
+        enemy.liftProgress = 0; // Start lift cycle
+        enemy.liftStartY = enemy.y; // Remember starting position
+      }
     }
   }
 
