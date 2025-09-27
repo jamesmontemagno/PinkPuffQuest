@@ -17,3 +17,9 @@ export const WORLD_HEIGHT = 16;
 export const FLOAT_DURATION = 2.0;
 export const FLOAT_GRAVITY_REDUCTION = 0.3;
 export const FLOAT_COOLDOWN = 3.0;
+
+// Power-up constants
+export const POWER_UP_DURATION = 8.0;
+export const SPEED_BOOST_MULTIPLIER = 1.5;
+export const SUPER_JUMP_MULTIPLIER = 1.4;
+export const EXTENDED_SLEEP_MULTIPLIER = 1.8;

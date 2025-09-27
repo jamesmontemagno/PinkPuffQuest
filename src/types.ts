@@ -5,6 +5,13 @@ export interface Rect {
   h: number;
 }
 
+export enum GameState {
+  StartScreen,
+  Playing,
+  Paused,
+  GameOver,
+}
+
 export enum EnemyKind {
   SleeperPlatform,
   BounceCritter,
@@ -28,6 +35,9 @@ export interface EnemyConfig {
 export enum PickupKind {
   Health,
   GoldenMelodyShard,
+  SpeedBoost,
+  SuperJump,
+  ExtendedSleep,
 }
 
 export interface EnemySpawn {

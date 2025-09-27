@@ -1,12 +1,16 @@
 import {
   COYOTE_TIME,
+  EXTENDED_SLEEP_MULTIPLIER,
   FLOAT_COOLDOWN,
   FLOAT_DURATION,
   JUMP_VELOCITY,
   MAX_HEALTH,
   PLAYER_SPEED,
   SLEEP_COOLDOWN,
+  SLEEP_DURATION,
   SLEEP_RADIUS,
+  SPEED_BOOST_MULTIPLIER,
+  SUPER_JUMP_MULTIPLIER,
 } from './config';
 import {
   createCollectible,
@@ -26,19 +30,21 @@ import { WorldRenderer } from './render/WorldRenderer';
 import { LevelManager, type LevelStart } from './state/LevelManager';
 import { clearPulses, getPulses, spawnPulse, updatePulses } from './sleepPulse';
 import { hideCompleteOverlay, playConfettiBurst, showCompleteOverlay, updateHud } from './hud';
-import { EnemyKind, type LevelData, type Rect } from './types';
+import { EnemyKind, PickupKind, type LevelData, type Rect } from './types';
 import {
   playDamageSound,
   playJumpSound,
   playNoteCollectSound,
   playSleepPulseSound,
 } from './audio';
+import { VisualEffects } from './VisualEffects';
 
 const DEATH_Y = -5;
 
 export class Game {
   private readonly world: WorldRenderer;
   private readonly levelManager = new LevelManager();
+  private readonly visualEffects = new VisualEffects();
 
   private player!: Player;
   private enemies: Enemy[] = [];
@@ -104,22 +110,44 @@ export class Game {
       }
     }
 
-    const noteResult = collectNotes(this.player, this.notes);
+    const noteResult = collectNotes(this.player, this.notes, this.elapsed);
     if (noteResult.collectedIndices.length > 0) {
       playNoteCollectSound();
       for (const index of noteResult.collectedIndices) {
         this.world.markNoteCollected(index);
+        // Add collection particles
+        const note = this.notes[index];
+        this.visualEffects.addParticles(note.x, note.y, 'collect', 12);
+        
+        // Add combo effect if applicable
+        if (this.player.comboCount > 1) {
+          this.visualEffects.addComboEffect(note.x, note.y, this.player.comboCount);
+        }
       }
       this.levelManager.trackNoteCollected(noteResult.collectedIndices.length);
     }
 
-    collectPickups(this.player, this.pickups);
+    const pickupResult = collectPickups(this.player, this.pickups, this.elapsed);
+    if (pickupResult.collectedIndices.length > 0) {
+      for (const index of pickupResult.collectedIndices) {
+        const pickup = this.pickups[index];
+        this.visualEffects.addParticles(pickup.x, pickup.y, 'sparkle', 15);
+      }
+      
+      // Handle power-up activations
+      for (const powerUp of pickupResult.powerUpsActivated) {
+        this.showPowerUpEffect(powerUp);
+      }
+    }
 
     this.updateCheckpoint();
     this.checkGate();
 
     updatePulses(dt);
     this.world.updatePulsesVisuals(getPulses());
+    
+    // Update visual effects
+    this.visualEffects.update(dt);
 
     this.world.syncPlayer(this.player, this.elapsed);
     this.world.syncEnemies(this.enemies, this.elapsed);
@@ -205,6 +233,12 @@ export class Game {
     this.player.isFloating = false;
     this.player.floatUntil = 0;
     this.player.floatReadyAt = 0;
+    // Initialize power-up system
+    this.player.speedBoostUntil = 0;
+    this.player.superJumpUntil = 0;
+    this.player.extendedSleepUntil = 0;
+    this.player.comboCount = 0;
+    this.player.lastCollectTime = 0;
 
     this.world.syncPlayer(this.player, this.elapsed, { force: true });
 
@@ -225,7 +259,10 @@ export class Game {
     let move = 0;
     if (getKey('ArrowLeft') || getKey('KeyA')) move -= 1;
     if (getKey('ArrowRight') || getKey('KeyD')) move += 1;
-    this.player.vx = move * PLAYER_SPEED;
+    
+    // Apply speed boost if active
+    const speedMultiplier = this.elapsed < this.player.speedBoostUntil ? SPEED_BOOST_MULTIPLIER : 1;
+    this.player.vx = move * PLAYER_SPEED * speedMultiplier;
 
     if (this.player.grounded) {
       this.player.coyoteTime = COYOTE_TIME;
@@ -238,14 +275,27 @@ export class Game {
       this.player.isFloating = false;
     }
 
+    // Apply super jump if active
+    const jumpMultiplier = this.elapsed < this.player.superJumpUntil ? SUPER_JUMP_MULTIPLIER : 1;
+
     if (
       consumeAnyKeyPress(['Space', 'KeyZ', 'ArrowUp', 'KeyW']) &&
       (this.player.grounded || this.player.coyoteTime > 0)
     ) {
-      this.player.vy = JUMP_VELOCITY;
+      this.player.vy = JUMP_VELOCITY * jumpMultiplier;
       this.player.grounded = false;
       this.player.coyoteTime = 0;
       playJumpSound();
+      
+      // Add jump particles for super jump
+      if (jumpMultiplier > 1) {
+        this.visualEffects.addParticles(
+          this.player.x + this.player.w / 2,
+          this.player.y + this.player.h,
+          'explosion',
+          15
+        );
+      }
     }
 
     // Puff Float ability (Hold S or Down Arrow)
@@ -258,6 +308,12 @@ export class Game {
       this.player.isFloating = true;
       this.player.floatUntil = this.elapsed + FLOAT_DURATION;
       this.player.floatReadyAt = this.elapsed + FLOAT_COOLDOWN;
+      this.visualEffects.addParticles(
+        this.player.x + this.player.w / 2,
+        this.player.y + this.player.h / 2,
+        'sparkle',
+        8
+      );
     }
 
     if (
@@ -265,6 +321,14 @@ export class Game {
       this.elapsed >= this.player.sleepReadyAt
     ) {
       this.activateSleepAbility();
+    }
+
+    // Add trail particles when moving fast
+    if (Math.abs(this.player.vx) > PLAYER_SPEED * 0.8) {
+      this.visualEffects.addTrailParticle(
+        this.player.x + this.player.w / 2,
+        this.player.y + this.player.h / 2
+      );
     }
   }
 
@@ -318,12 +382,24 @@ export class Game {
     spawnPulse(centerX, centerY, SLEEP_RADIUS);
     playSleepPulseSound();
 
+    // Enhanced duration if power-up is active
+    const sleepDuration = this.elapsed < this.player.extendedSleepUntil 
+      ? SLEEP_DURATION * EXTENDED_SLEEP_MULTIPLIER 
+      : SLEEP_DURATION;
+
     const { defeatedIndices, bossDamage } = applySleepPulse(
       this.player,
       this.enemies,
       this.elapsed,
       SLEEP_RADIUS,
+      sleepDuration,
     );
+
+    // Add enhanced visual effects
+    this.visualEffects.addSleepSparkles(centerX, centerY, SLEEP_RADIUS);
+    if (this.elapsed < this.player.extendedSleepUntil) {
+      this.visualEffects.addParticles(centerX, centerY, 'explosion', 20);
+    }
 
     if (bossDamage > 0) {
       this.bossHealthCurrent = Math.max(0, this.bossHealthCurrent - bossDamage);
@@ -395,5 +471,26 @@ export class Game {
       centerY >= this.gateRect.y - tolerance &&
       centerY <= this.gateRect.y + this.gateRect.h + tolerance
     );
+  }
+
+  private showPowerUpEffect(powerUp: PickupKind): void {
+    let message = '';
+    switch (powerUp) {
+      case PickupKind.SpeedBoost:
+        message = 'Speed Boost!';
+        break;
+      case PickupKind.SuperJump:
+        message = 'Super Jump!';
+        break;
+      case PickupKind.ExtendedSleep:
+        message = 'Extended Sleep!';
+        break;
+    }
+    
+    // Add screen shake for power-up activation
+    this.visualEffects.addScreenShake(2, 0.3);
+    
+    // Could add a temporary UI message here in the future
+    console.log(`Power-up activated: ${message}`);
   }
 }

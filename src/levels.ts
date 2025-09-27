@@ -50,6 +50,7 @@ export const LEVELS: LevelData[] = [
     pickups: [
       { kind: PickupKind.Health, x: 24, y: 3.3 },
       { kind: PickupKind.GoldenMelodyShard, x: 40, y: 7 },
+      { kind: PickupKind.SpeedBoost, x: 16, y: 6 },
     ],
     checkpoint: { x: 32, y: 1 },
     gate: { x: 60, y: 1, w: 2, h: 4 },
@@ -112,6 +113,7 @@ export const LEVELS: LevelData[] = [
     pickups: [
       { kind: PickupKind.Health, x: 37, y: 5.2 },
       { kind: PickupKind.GoldenMelodyShard, x: 25, y: 11 },
+      { kind: PickupKind.SuperJump, x: 50, y: 9 },
       { kind: PickupKind.Health, x: 70, y: 1.5 },
     ],
     checkpoint: { x: 40, y: 1 },
@@ -155,6 +157,7 @@ export const LEVELS: LevelData[] = [
     pickups: [
       { kind: PickupKind.Health, x: 15, y: 1.5 },
       { kind: PickupKind.GoldenMelodyShard, x: 30, y: 7 },
+      { kind: PickupKind.ExtendedSleep, x: 38, y: 3 },
       { kind: PickupKind.Health, x: 45, y: 1.5 },
     ],
     checkpoint: { x: 10, y: 1 },

@@ -5,21 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pink Puff Quest</title>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
+      
       html,
       body {
         margin: 0;
         padding: 0;
-        background: #f8f4fb;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f8f4fb 0%, #e6daf9 50%, #d7c9f4 100%);
+        font-family: 'Fredoka', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         color: #4a3d6b;
         height: 100%;
         overflow: hidden;
+      }
+
+      /* Animated background particles */
+      .bg-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: radial-gradient(circle, #f9a4c0 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+        opacity: 0.6;
+      }
+
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0px) rotate(0deg);
+          opacity: 0.6;
+        }
+        50% {
+          transform: translateY(-20px) rotate(180deg);
+          opacity: 1;
+        }
+      }
+
+      /* Start Screen Styles */
+      .start-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, 
+          rgba(248, 244, 251, 0.95) 0%, 
+          rgba(230, 218, 249, 0.95) 50%, 
+          rgba(215, 201, 244, 0.95) 100%);
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+      }
+
+      .start-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .game-title {
+        font-size: 4rem;
+        font-weight: 700;
+        color: #7158b0;
+        text-shadow: 0 4px 8px rgba(113, 88, 176, 0.3);
+        margin-bottom: 1rem;
+        animation: titlePulse 3s ease-in-out infinite;
+        text-align: center;
+      }
+
+      @keyframes titlePulse {
+        0%, 100% {
+          transform: scale(1);
+          filter: hue-rotate(0deg);
+        }
+        50% {
+          transform: scale(1.05);
+          filter: hue-rotate(10deg);
+        }
+      }
+
+      .game-subtitle {
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #9c7cd4;
+        margin-bottom: 3rem;
+        animation: subtitleFloat 2s ease-in-out infinite;
+        text-align: center;
+      }
+
+      @keyframes subtitleFloat {
+        0%, 100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .start-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .menu-button {
+        background: linear-gradient(135deg, #f9a4c0 0%, #ff8ba7 100%);
+        border: none;
+        color: #4a3d6b;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(249, 164, 192, 0.4);
+        min-width: 200px;
+        text-align: center;
+      }
+
+      .menu-button:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(249, 164, 192, 0.6);
+        background: linear-gradient(135deg, #ffc3a0 0%, #f9a4c0 100%);
+      }
+
+      .menu-button:active {
+        transform: translateY(-1px) scale(1.02);
+      }
+
+      .floating-elements {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .floating-note {
+        position: absolute;
+        font-size: 2rem;
+        color: #88e0f7;
+        animation: floatNote 8s linear infinite;
+        opacity: 0.7;
+      }
+
+      @keyframes floatNote {
+        0% {
+          transform: translateY(100vh) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.7;
+        }
+        90% {
+          opacity: 0.7;
+        }
+        100% {
+          transform: translateY(-50px) rotate(360deg);
+          opacity: 0;
+        }
       }
 
       #app {
         width: 100%;
         height: 100%;
         position: relative;
+        z-index: 10;
       }
 
       canvas {
@@ -34,6 +201,7 @@
         flex-direction: column;
         gap: 12px;
         pointer-events: none;
+        z-index: 20;
       }
 
       .hud-top-right {
@@ -45,6 +213,7 @@
         align-items: flex-end;
         gap: 10px;
         pointer-events: auto;
+        z-index: 20;
       }
 
       .pips {
@@ -53,33 +222,42 @@
       }
 
       .pip {
-        width: 24px;
-        height: 24px;
-        border-radius: 12px;
-        background: #d7c9f4;
-        border: 2px solid #9c7cd4;
-        transition: background 0.2s ease;
+        width: 28px;
+        height: 28px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #d7c9f4 0%, #c4b3e5 100%);
+        border: 3px solid #9c7cd4;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(156, 124, 212, 0.3);
       }
 
       .pip.full {
-        background: #f9a4c0;
+        background: linear-gradient(135deg, #f9a4c0 0%, #ff8ba7 100%);
+        box-shadow: 0 2px 8px rgba(249, 164, 192, 0.5);
+        transform: scale(1.1);
       }
 
       .cooldown {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        border: 2px solid #9c7cd4;
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        border: 3px solid #9c7cd4;
         padding: 4px;
         position: relative;
-        background: #ffffffa0;
+        background: linear-gradient(135deg, #ffffffa0 0%, #f3ecffa0 100%);
+        box-shadow: 0 4px 12px rgba(156, 124, 212, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .cooldown:hover {
+        transform: scale(1.05);
       }
 
       .note-icon {
         width: 100%;
         height: 100%;
-        border-radius: 4px;
-        background: #e6daf9;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #e6daf9 0%, #d7c9f4 100%);
         overflow: hidden;
         position: relative;
       }
@@ -90,8 +268,19 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 20px;
+        font-size: 22px;
         color: #7158b0;
+        text-shadow: 0 1px 3px rgba(113, 88, 176, 0.3);
+        animation: noteIconPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes noteIconPulse {
+        0%, 100% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.1);
+        }
       }
 
       .note-icon .fill {
@@ -99,18 +288,21 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        background: #88e0f7;
-        transition: height 0.2s ease;
+        background: linear-gradient(180deg, #88e0f7 0%, #5bc5e0 100%);
+        transition: height 0.3s ease;
         height: 100%;
+        border-radius: 0 0 8px 8px;
       }
 
       .notes {
         font-size: 18px;
         font-weight: 600;
-        background: #ffffffa0;
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: 2px solid #d7c9f4;
+        background: linear-gradient(135deg, #ffffffa0 0%, #f3ecffa0 100%);
+        padding: 8px 16px;
+        border-radius: 12px;
+        border: 3px solid #d7c9f4;
+        box-shadow: 0 4px 12px rgba(215, 201, 244, 0.3);
+        backdrop-filter: blur(5px);
       }
 
       .boss-hud {
@@ -121,9 +313,10 @@
         display: none;
         flex-direction: column;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         pointer-events: none;
-        min-width: 220px;
+        min-width: 240px;
+        z-index: 20;
       }
 
       .boss-hud.visible {
@@ -131,31 +324,33 @@
       }
 
       .boss-label {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: #4a3d6b;
-        background: #ffffffd0;
-        padding: 4px 10px;
+        background: linear-gradient(135deg, #ffffffd0 0%, #f3ecffd0 100%);
+        padding: 6px 16px;
         border-radius: 999px;
-        border: 2px solid #c4b3e5;
+        border: 3px solid #c4b3e5;
+        box-shadow: 0 4px 12px rgba(196, 179, 229, 0.3);
       }
 
       .boss-bar {
-        width: 240px;
-        height: 16px;
-        border-radius: 12px;
-        border: 2px solid #9c7cd4;
+        width: 260px;
+        height: 20px;
+        border-radius: 15px;
+        border: 3px solid #9c7cd4;
         overflow: hidden;
         background: linear-gradient(90deg, #f3ecff 0%, #ddd2f6 100%);
         position: relative;
+        box-shadow: 0 4px 12px rgba(156, 124, 212, 0.3);
       }
 
       .boss-bar-fill {
         position: absolute;
         inset: 0;
-        background: linear-gradient(90deg, #ff8ba7 0%, #ffc3a0 100%);
+        background: linear-gradient(90deg, #ff8ba7 0%, #ffc3a0 50%, #f9a4c0 100%);
         width: 100%;
         transform-origin: left center;
         transition: width 0.25s ease;
@@ -167,7 +362,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 700;
         color: #4a3d6b;
         text-shadow: 0 1px 2px #ffffffaa;
@@ -177,21 +372,24 @@
       .fps {
         font-size: 14px;
         font-weight: 600;
-        background: #ffffffa0;
-        padding: 4px 10px;
-        border-radius: 8px;
+        background: linear-gradient(135deg, #ffffffa0 0%, #f3ecffa0 100%);
+        padding: 6px 12px;
+        border-radius: 12px;
         border: 2px solid #d7c9f4;
         color: #4a3d6b;
         pointer-events: none;
+        box-shadow: 0 2px 8px rgba(215, 201, 244, 0.2);
       }
 
       .level-label {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
-        background: #ffffffa0;
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: 2px solid #d7c9f4;
+        background: linear-gradient(135deg, #ffffffa0 0%, #f3ecffa0 100%);
+        padding: 8px 16px;
+        border-radius: 12px;
+        border: 3px solid #d7c9f4;
+        box-shadow: 0 4px 12px rgba(215, 201, 244, 0.3);
+        backdrop-filter: blur(5px);
       }
 
       .complete-overlay {
@@ -201,13 +399,19 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: #f8f4fbeb;
+        background: linear-gradient(135deg, 
+          rgba(248, 244, 251, 0.95) 0%, 
+          rgba(230, 218, 249, 0.95) 50%, 
+          rgba(215, 201, 244, 0.95) 100%);
+        backdrop-filter: blur(10px);
         color: #4a3d6b;
-        gap: 12px;
-        font-size: 24px;
+        gap: 20px;
+        font-size: 28px;
+        font-weight: 600;
         visibility: hidden;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.5s ease;
+        z-index: 50;
       }
 
       .complete-overlay.visible {
@@ -216,13 +420,22 @@
       }
 
       .complete-overlay button {
-        padding: 10px 18px;
-        border-radius: 20px;
+        padding: 12px 24px;
+        border-radius: 25px;
         border: none;
-        background: #f9a4c0;
+        background: linear-gradient(135deg, #f9a4c0 0%, #ff8ba7 100%);
         color: #4a3d6b;
+        font-family: 'Fredoka', sans-serif;
         font-weight: 600;
+        font-size: 18px;
         cursor: pointer;
+        box-shadow: 0 4px 15px rgba(249, 164, 192, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .complete-overlay button:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(249, 164, 192, 0.6);
       }
 
       .confetti-layer {
@@ -232,36 +445,39 @@
 
       .settings-toggle {
         pointer-events: auto;
-        border: 2px solid #c4b3e5;
-        background: #ffffffd0;
+        border: 3px solid #c4b3e5;
+        background: linear-gradient(135deg, #ffffffd0 0%, #f3ecffd0 100%);
         color: #4a3d6b;
-        padding: 6px 12px;
+        padding: 8px 16px;
         border-radius: 999px;
+        font-family: 'Fredoka', sans-serif;
         font-weight: 600;
         font-size: 14px;
         cursor: pointer;
-        box-shadow: 0 2px 6px #00000018;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        box-shadow: 0 4px 12px rgba(196, 179, 229, 0.3);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
       }
 
       .settings-toggle:hover,
       .settings-toggle:focus-visible {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px #00000024;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 16px rgba(196, 179, 229, 0.4);
         outline: none;
       }
 
       .settings-panel {
         pointer-events: auto;
-        min-width: 200px;
-        background: #ffffffee;
-        border: 2px solid #c4b3e5;
-        border-radius: 12px;
-        padding: 14px 16px;
-        box-shadow: 0 12px 30px #00000026;
+        min-width: 220px;
+        background: linear-gradient(135deg, #ffffffee 0%, #f3ecffee 100%);
+        border: 3px solid #c4b3e5;
+        border-radius: 16px;
+        padding: 16px 20px;
+        box-shadow: 0 16px 40px rgba(196, 179, 229, 0.4);
+        backdrop-filter: blur(10px);
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 14px;
         color: #4a3d6b;
       }
 
@@ -271,7 +487,7 @@
 
       .settings-panel h3 {
         margin: 0;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
@@ -281,19 +497,60 @@
       .settings-toggle-row {
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 14px;
+        gap: 12px;
+        font-size: 15px;
+        font-weight: 500;
       }
 
       .settings-toggle-row input[type='checkbox'] {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         accent-color: #9c7cd4;
         cursor: pointer;
+      }
+
+      /* Power-up effects */
+      .power-up-effect {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 15;
+      }
+
+      .power-up-effect.speed-boost {
+        background: radial-gradient(circle at center, transparent 40%, rgba(255, 255, 0, 0.1) 100%);
+        animation: speedPulse 0.5s ease-in-out infinite alternate;
+      }
+
+      @keyframes speedPulse {
+        from {
+          opacity: 0.5;
+        }
+        to {
+          opacity: 0.8;
+        }
       }
     </style>
   </head>
   <body>
+    <!-- Background particles -->
+    <div class="bg-particles" id="bg-particles"></div>
+    
+    <!-- Start Screen -->
+    <div class="start-screen" id="start-screen">
+      <div class="floating-elements" id="floating-elements"></div>
+      <h1 class="game-title">Pink Puff Quest</h1>
+      <p class="game-subtitle">Sing, snooze, and bounce through dreamy adventures</p>
+      <div class="start-menu">
+        <button class="menu-button" id="start-game">Start Adventure</button>
+        <button class="menu-button" id="how-to-play">How to Play</button>
+        <button class="menu-button" id="settings-menu">Settings</button>
+      </div>
+    </div>
+
     <div id="app">
       <div class="hud">
         <div class="level-label" data-hud="level">Level 1 — Prototype Meadow</div>
@@ -314,30 +571,30 @@
           <div class="boss-bar-text" data-hud="boss-text">0 / 0</div>
         </div>
       </div>
-        <div class="hud-top-right">
-          <div class="fps" data-hud="fps">FPS: 60</div>
-          <button class="settings-toggle" type="button" data-hud="settings-button" aria-haspopup="true" aria-expanded="false">
-            Audio &amp; Sound
-          </button>
-          <div
-            class="settings-panel hidden"
-            data-hud="settings-panel"
-            role="dialog"
-            aria-modal="false"
-            aria-label="Audio settings"
-            tabindex="-1"
-          >
-            <h3>Audio</h3>
-            <label class="settings-toggle-row">
-              <input type="checkbox" data-hud="music-toggle" checked />
-              <span>Background music</span>
-            </label>
-            <label class="settings-toggle-row">
-              <input type="checkbox" data-hud="sfx-toggle" checked />
-              <span>Sound effects</span>
-            </label>
-          </div>
+      <div class="hud-top-right">
+        <div class="fps" data-hud="fps">FPS: 60</div>
+        <button class="settings-toggle" type="button" data-hud="settings-button" aria-haspopup="true" aria-expanded="false">
+          Audio &amp; Sound
+        </button>
+        <div
+          class="settings-panel hidden"
+          data-hud="settings-panel"
+          role="dialog"
+          aria-modal="false"
+          aria-label="Audio settings"
+          tabindex="-1"
+        >
+          <h3>Audio</h3>
+          <label class="settings-toggle-row">
+            <input type="checkbox" data-hud="music-toggle" checked />
+            <span>Background music</span>
+          </label>
+          <label class="settings-toggle-row">
+            <input type="checkbox" data-hud="sfx-toggle" checked />
+            <span>Sound effects</span>
+          </label>
         </div>
+      </div>
       <div class="complete-overlay" data-hud="complete">
         <div class="message">Level Complete!</div>
         <div class="stats" data-hud="complete-stats"></div>

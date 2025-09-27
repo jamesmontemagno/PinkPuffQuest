@@ -33,6 +33,12 @@ export interface Player extends BaseEntity {
   isFloating: boolean;
   floatUntil: number;
   floatReadyAt: number;
+  // Power-up system
+  speedBoostUntil: number;
+  superJumpUntil: number;
+  extendedSleepUntil: number;
+  comboCount: number;
+  lastCollectTime: number;
 }
 
 export interface PatrolData {
@@ -109,6 +115,12 @@ export function createPlayer(): Player {
     isFloating: false,
     floatUntil: 0,
     floatReadyAt: 0,
+    // Power-up system
+    speedBoostUntil: 0,
+    superJumpUntil: 0,
+    extendedSleepUntil: 0,
+    comboCount: 0,
+    lastCollectTime: 0,
   };
 }
 
