@@ -29,6 +29,16 @@ export interface Player extends BaseEntity {
   notes: number;
   respawnX: number;
   respawnY: number;
+  // Puff Float ability
+  isFloating: boolean;
+  floatUntil: number;
+  floatReadyAt: number;
+  // Power-up system
+  speedBoostUntil: number;
+  superJumpUntil: number;
+  extendedSleepUntil: number;
+  comboCount: number;
+  lastCollectTime: number;
 }
 
 export interface PatrolData {
@@ -53,6 +63,18 @@ export interface Enemy extends BaseEntity {
   direction: 1 | -1;
   health?: number;
   maxHealth?: number;
+  // For DrowsySnail - armored enemy requiring multiple sleep pulses
+  sleepPulsesRequired?: number;
+  sleepPulsesReceived?: number;
+  // For GrumbleRock - lift behavior when asleep
+  lift?: {
+    height: number;
+    duration: number;
+  };
+  liftStartY?: number;
+  liftProgress?: number;
+  // For PuffyPuffer - deflation behavior
+  deflationProgress?: number;
 }
 
 export interface Collectible {
@@ -89,6 +111,16 @@ export function createPlayer(): Player {
     notes: 0,
     respawnX: 2,
     respawnY: 1,
+    // Puff Float ability
+    isFloating: false,
+    floatUntil: 0,
+    floatReadyAt: 0,
+    // Power-up system
+    speedBoostUntil: 0,
+    superJumpUntil: 0,
+    extendedSleepUntil: 0,
+    comboCount: 0,
+    lastCollectTime: 0,
   };
 }
 
@@ -133,6 +165,69 @@ export function createEnemy(spawn: EnemySpawn): Enemy {
         direction: 1,
         health: spawn.health ?? 5,
         maxHealth: spawn.health ?? 5,
+      };
+    case EnemyKind.GrumbleRock:
+      return {
+        x: spawn.x,
+        y: spawn.y,
+        w: 2,
+        h: 2,
+        vx: 1,
+        vy: 0,
+        solid: true,
+        harmful: true,
+        kind: spawn.kind,
+        state: 'awake',
+        sleepUntil: 0,
+        telegraphStart: 0,
+        patrol: spawn.patrol,
+        baseY: spawn.y,
+        awakeSpeedX: 1,
+        direction: 1,
+        lift: spawn.lift || { height: 3, duration: 6 },
+        liftStartY: spawn.y,
+        liftProgress: 0,
+      };
+    case EnemyKind.PuffyPuffer:
+      return {
+        x: spawn.x,
+        y: spawn.y,
+        w: 2.5,
+        h: 1.8,
+        vx: 0.5,
+        vy: 0,
+        solid: false,
+        harmful: true,
+        kind: spawn.kind,
+        state: 'awake',
+        sleepUntil: 0,
+        telegraphStart: 0,
+        patrol: spawn.patrol,
+        baseY: spawn.y,
+        awakeSpeedX: 0.5,
+        direction: 1,
+        deflationProgress: 0,
+      };
+    case EnemyKind.DrowsySnail:
+      return {
+        x: spawn.x,
+        y: spawn.y,
+        w: 1.8,
+        h: 1.6,
+        vx: 0.8,
+        vy: 0,
+        solid: true,
+        harmful: true,
+        kind: spawn.kind,
+        state: 'awake',
+        sleepUntil: 0,
+        telegraphStart: 0,
+        patrol: spawn.patrol,
+        baseY: spawn.y,
+        awakeSpeedX: 0.8,
+        direction: 1,
+        sleepPulsesRequired: spawn.sleepPulsesRequired || 2,
+        sleepPulsesReceived: 0,
       };
     case EnemyKind.BounceCritter:
     default:

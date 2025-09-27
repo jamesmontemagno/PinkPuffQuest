@@ -5,10 +5,20 @@ export interface Rect {
   h: number;
 }
 
+export enum GameState {
+  StartScreen,
+  Playing,
+  Paused,
+  GameOver,
+}
+
 export enum EnemyKind {
   SleeperPlatform,
   BounceCritter,
   Boss,
+  GrumbleRock,
+  PuffyPuffer,
+  DrowsySnail,
 }
 
 export type EnemyState = 'awake' | 'asleep';
@@ -24,6 +34,10 @@ export interface EnemyConfig {
 
 export enum PickupKind {
   Health,
+  GoldenMelodyShard,
+  SpeedBoost,
+  SuperJump,
+  ExtendedSleep,
 }
 
 export interface EnemySpawn {
@@ -39,6 +53,14 @@ export interface EnemySpawn {
     freq: number;
   };
   health?: number;
+  // For DrowsySnail - requires multiple sleep pulses
+  sleepPulsesRequired?: number;
+  sleepPulsesReceived?: number;
+  // For GrumbleRock - lift behavior
+  lift?: {
+    height: number;
+    duration: number;
+  };
 }
 
 export interface NoteSpawn {

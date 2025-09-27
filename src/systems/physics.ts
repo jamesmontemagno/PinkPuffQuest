@@ -1,4 +1,4 @@
-import { GRAVITY } from '../config';
+import { FLOAT_GRAVITY_REDUCTION, GRAVITY } from '../config';
 import type { Enemy, Player } from '../entities';
 import { EnemyKind, type Rect } from '../types';
 
@@ -10,7 +10,9 @@ export function applyPhysics(
   prevX: number,
   prevY: number,
 ): void {
-  player.vy -= GRAVITY * dt;
+  // Apply reduced gravity when floating
+  const gravityMultiplier = player.isFloating ? FLOAT_GRAVITY_REDUCTION : 1.0;
+  player.vy -= GRAVITY * gravityMultiplier * dt;
 
   const solids = collectSolidRects(platforms, enemies);
 
@@ -27,6 +29,13 @@ function collectSolidRects(platforms: Rect[], enemies: Enemy[]): Rect[] {
     if (enemy.kind === EnemyKind.SleeperPlatform) {
       rects.push({ x: enemy.x, y: enemy.y, w: enemy.w, h: enemy.h });
     } else if (enemy.kind === EnemyKind.BounceCritter && enemy.state === 'asleep') {
+      rects.push({ x: enemy.x, y: enemy.y, w: enemy.w, h: enemy.h });
+    } else if (enemy.kind === EnemyKind.GrumbleRock) {
+      rects.push({ x: enemy.x, y: enemy.y, w: enemy.w, h: enemy.h });
+    } else if (enemy.kind === EnemyKind.PuffyPuffer && enemy.state === 'asleep') {
+      // When asleep, becomes a safe cloud platform
+      rects.push({ x: enemy.x, y: enemy.y + enemy.h * 0.6, w: enemy.w, h: enemy.h * 0.4 });
+    } else if (enemy.kind === EnemyKind.DrowsySnail) {
       rects.push({ x: enemy.x, y: enemy.y, w: enemy.w, h: enemy.h });
     }
   }
